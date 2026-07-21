@@ -13,3 +13,95 @@ main {
   margin: 0 auto;
   padding: 2rem 1rem;
 }
+
+button {
+  font: inherit;
+  padding: 0.4rem 0.9rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  background: #f0f0f0;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+input {
+  font: inherit;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.add-form,
+.edit-form {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.add-form input:first-child,
+.edit-form input:first-child {
+  flex: 2;
+}
+
+.add-form input:nth-child(2),
+.edit-form input:nth-child(2) {
+  flex: 1;
+}
+
+.item-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.item-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.item-row .edit-form {
+  margin-bottom: 0;
+  flex: 1;
+}
+
+.item-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.item-title {
+  font-weight: 600;
+}
+
+.item-notes {
+  color: #555;
+  font-size: 0.9rem;
+}
+
+.item-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.muted {
+  color: #888;
+  font-size: 0.85rem;
+}
+
+.error {
+  color: #b00020;
+}
