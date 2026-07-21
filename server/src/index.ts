@@ -1,5 +1,6 @@
 import express from 'express'
 import { itemsRouter } from './routes/items.js'
+import { todayRouter } from './routes/today.js'
 
 const app = express()
 
@@ -11,6 +12,7 @@ app.get('/api/health', (_req, res) => {
 })
 
 app.use('/api/items', itemsRouter)
+app.use('/api/today', todayRouter)
 
 // Any error thrown in a route lands here instead of crashing the server
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
