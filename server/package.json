@@ -6,11 +6,10 @@
     "dev": "tsx watch src/index.ts"
   },
   "dependencies": {
-    "better-sqlite3": "^12.11.1",
+    "@libsql/client": "^0.17.4",
     "express": "^5"
   },
   "devDependencies": {
-    "@types/better-sqlite3": "^7.6.13",
     "@types/express": "^5",
     "tsx": "^4",
     "typescript": "^5"
