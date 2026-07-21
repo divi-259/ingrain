@@ -1,0 +1,15 @@
+:root {
+  font-family: system-ui, -apple-system, sans-serif;
+  color: #222;
+}
+
+body {
+  margin: 0;
+  background: #fafafa;
+}
+
+main {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
