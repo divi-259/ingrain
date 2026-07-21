@@ -4,9 +4,6 @@ import { pickWeighted, type Candidate } from '../lib/pick.js'
 
 export const todayRouter = Router()
 
-// TODO(auth): replace with req.user.id once login exists (M6)
-const userId = 1
-
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
 
 interface PickRow {
@@ -17,7 +14,7 @@ interface PickRow {
   completed_at: string | null
 }
 
-async function activeCandidates(excludeItemId?: number): Promise<Candidate[]> {
+async function activeCandidates(userId: number, excludeItemId?: number): Promise<Candidate[]> {
   const result = await db.execute({
     sql: `SELECT i.id, i.created_at AS createdAt, MAX(r.revised_at) AS lastRevisedAt
           FROM items i LEFT JOIN revisions r ON r.item_id = i.id
@@ -29,7 +26,7 @@ async function activeCandidates(excludeItemId?: number): Promise<Candidate[]> {
   return excludeItemId ? rows.filter((r) => r.id !== excludeItemId) : rows
 }
 
-async function getPickRow(date: string): Promise<PickRow | undefined> {
+async function getPickRow(userId: number, date: string): Promise<PickRow | undefined> {
   const result = await db.execute({
     sql: 'SELECT * FROM daily_picks WHERE user_id = ? AND date = ?',
     args: [userId, date],
@@ -57,15 +54,16 @@ async function pickResponse(row: PickRow) {
 }
 
 todayRouter.get('/', async (req, res) => {
+  const userId = req.user!.id
   const date = String(req.query.date ?? '')
   if (!DATE_RE.test(date)) {
     res.status(400).json({ error: 'date=YYYY-MM-DD is required' })
     return
   }
 
-  let row = await getPickRow(date)
+  let row = await getPickRow(userId, date)
   if (!row) {
-    const chosen = pickWeighted(await activeCandidates(), date)
+    const chosen = pickWeighted(await activeCandidates(userId), date)
     if (!chosen) {
       res.json({ pick: null })
       return
@@ -77,18 +75,19 @@ todayRouter.get('/', async (req, res) => {
             VALUES (?, ?, ?, ?)`,
       args: [userId, date, chosen.id, now()],
     })
-    row = (await getPickRow(date))!
+    row = (await getPickRow(userId, date))!
   }
   res.json(await pickResponse(row))
 })
 
 todayRouter.post('/skip', async (req, res) => {
+  const userId = req.user!.id
   const date = String(req.body.date ?? '')
   if (!DATE_RE.test(date)) {
     res.status(400).json({ error: 'date=YYYY-MM-DD is required' })
     return
   }
-  const row = await getPickRow(date)
+  const row = await getPickRow(userId, date)
   if (!row) {
     res.status(409).json({ error: 'no pick for this date yet' })
     return
@@ -101,7 +100,7 @@ todayRouter.post('/skip', async (req, res) => {
     res.status(409).json({ error: 'skip already used today' })
     return
   }
-  const chosen = pickWeighted(await activeCandidates(row.item_id), date)
+  const chosen = pickWeighted(await activeCandidates(userId, row.item_id), date)
   if (!chosen) {
     res.status(409).json({ error: 'no other items to swap to' })
     return
@@ -110,16 +109,17 @@ todayRouter.post('/skip', async (req, res) => {
     sql: 'UPDATE daily_picks SET item_id = ?, skipped_item_id = ? WHERE id = ?',
     args: [chosen.id, row.item_id, row.id],
   })
-  res.json(await pickResponse((await getPickRow(date))!))
+  res.json(await pickResponse((await getPickRow(userId, date))!))
 })
 
 todayRouter.post('/done', async (req, res) => {
+  const userId = req.user!.id
   const date = String(req.body.date ?? '')
   if (!DATE_RE.test(date)) {
     res.status(400).json({ error: 'date=YYYY-MM-DD is required' })
     return
   }
-  const row = await getPickRow(date)
+  const row = await getPickRow(userId, date)
   if (!row) {
     res.status(409).json({ error: 'no pick for this date yet' })
     return
@@ -136,5 +136,5 @@ todayRouter.post('/done', async (req, res) => {
     sql: 'UPDATE daily_picks SET completed_at = ? WHERE id = ?',
     args: [now(), row.id],
   })
-  res.json(await pickResponse((await getPickRow(date))!))
+  res.json(await pickResponse((await getPickRow(userId, date))!))
 })

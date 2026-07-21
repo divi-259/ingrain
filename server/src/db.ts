@@ -26,14 +26,6 @@ if (url.startsWith('file:')) {
 // is CREATE ... IF NOT EXISTS.
 await db.executeMultiple(readFileSync(join(here, 'schema.sql'), 'utf8'))
 
-// TODO(auth): remove once real login exists (M6). Until then all
-// routes act as this seeded dev user.
-await db.execute({
-  sql: `INSERT INTO users (id, email, created_at) VALUES (1, 'dev@local', ?)
-        ON CONFLICT(id) DO NOTHING`,
-  args: [new Date().toISOString()],
-})
-
 export function now(): string {
   return new Date().toISOString()
 }

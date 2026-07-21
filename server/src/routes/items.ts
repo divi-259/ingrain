@@ -3,9 +3,6 @@ import { db, now } from '../db.js'
 
 export const itemsRouter = Router()
 
-// TODO(auth): replace with req.user.id once login exists (M6)
-const userId = 1
-
 const itemColumns = `
   i.id, i.title, i.notes, i.created_at AS createdAt, i.archived_at AS archivedAt,
   MAX(r.revised_at) AS lastRevisedAt,
@@ -13,6 +10,7 @@ const itemColumns = `
 `
 
 itemsRouter.get('/', async (req, res) => {
+  const userId = req.user!.id
   const archived = req.query.archived === '1'
   const result = await db.execute({
     sql: `SELECT ${itemColumns}
@@ -26,6 +24,7 @@ itemsRouter.get('/', async (req, res) => {
 })
 
 itemsRouter.post('/', async (req, res) => {
+  const userId = req.user!.id
   const title = typeof req.body.title === 'string' ? req.body.title.trim() : ''
   const notes = typeof req.body.notes === 'string' ? req.body.notes.trim() : ''
   if (!title) {
@@ -46,6 +45,7 @@ itemsRouter.post('/', async (req, res) => {
 })
 
 itemsRouter.put('/:id', async (req, res) => {
+  const userId = req.user!.id
   const title = typeof req.body.title === 'string' ? req.body.title.trim() : ''
   const notes = typeof req.body.notes === 'string' ? req.body.notes.trim() : ''
   if (!title) {
@@ -65,6 +65,7 @@ itemsRouter.put('/:id', async (req, res) => {
 
 // "Delete" is an archive: history stays intact, item leaves the rotation.
 itemsRouter.delete('/:id', async (req, res) => {
+  const userId = req.user!.id
   const result = await db.execute({
     sql: 'UPDATE items SET archived_at = ? WHERE id = ? AND user_id = ? AND archived_at IS NULL',
     args: [now(), req.params.id, userId],
