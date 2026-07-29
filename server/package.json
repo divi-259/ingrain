@@ -3,18 +3,19 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/index.ts"
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts"
   },
   "dependencies": {
     "@libsql/client": "^0.17.4",
     "cookie-parser": "^1.4.7",
     "express": "^5",
-    "resend": "^6.17.2"
+    "resend": "^6.17.2",
+    "tsx": "^4"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.10",
     "@types/express": "^5",
-    "tsx": "^4",
     "typescript": "^5"
   }
 }

@@ -115,7 +115,7 @@ authRouter.post('/verify', async (req, res) => {
     sameSite: 'lax',
     path: '/',
     maxAge: SESSION_TTL_MS,
-    // secure: true — add when deployed behind HTTPS
+    secure: process.env.NODE_ENV === 'production', // HTTPS-only when deployed
   })
 
   const userResult = await db.execute({
