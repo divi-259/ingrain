@@ -10,11 +10,12 @@ mkdirSync(dataDir, { recursive: true })
 
 // Dev: a plain local file, just like SQLite. Prod: point these env
 // vars at Turso and the same code talks to the hosted database.
-const url = process.env.TURSO_DATABASE_URL ?? `file:${join(dataDir, 'ingrain.db')}`
+// || not ??: an empty string in .env must fall back too.
+const url = process.env.TURSO_DATABASE_URL || `file:${join(dataDir, 'ingrain.db')}`
 
 export const db = createClient({
   url,
-  authToken: process.env.TURSO_AUTH_TOKEN,
+  authToken: process.env.TURSO_AUTH_TOKEN || undefined,
 })
 
 if (url.startsWith('file:')) {

@@ -11,7 +11,8 @@ const SESSION_TTL_MS = 180 * 24 * 60 * 60 * 1000 // sessions live 180 days
 const MAX_ATTEMPTS = 5
 const COOKIE_NAME = 'ingrain_session'
 
-const CLIENT_URL = process.env.CLIENT_URL ?? 'http://localhost:5173'
+// || not ??: an empty string in .env must fall back too
+const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173'
 
 interface CodeRow {
   id: number

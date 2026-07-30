@@ -67,8 +67,8 @@ export default function ItemsPage() {
     }
   }
 
-  async function archiveItem(item: Item) {
-    if (!confirm(`Archive "${item.title}"? It leaves the rotation but keeps its history.`)) return
+  async function deleteItem(item: Item) {
+    if (!confirm(`Delete "${item.title}"? This permanently removes it and its revision history.`)) return
     try {
       await apiFetch(`/api/items/${item.id}`, { method: 'DELETE' })
       await refresh()
@@ -135,7 +135,7 @@ export default function ItemsPage() {
               </div>
               <div className="item-actions">
                 <button type="button" onClick={() => startEdit(item)}>Edit</button>
-                <button type="button" onClick={() => archiveItem(item)}>Archive</button>
+                <button type="button" onClick={() => deleteItem(item)}>Delete</button>
               </div>
             </li>
           ),

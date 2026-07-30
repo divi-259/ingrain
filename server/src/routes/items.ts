@@ -63,16 +63,28 @@ itemsRouter.put('/:id', async (req, res) => {
   res.json({ ok: true })
 })
 
-// "Delete" is an archive: history stays intact, item leaves the rotation.
+// Permanent delete: the item, its revision history, and any daily
+// picks that reference it (foreign keys require cleaning those first).
 itemsRouter.delete('/:id', async (req, res) => {
   const userId = req.user!.id
-  const result = await db.execute({
-    sql: 'UPDATE items SET archived_at = ? WHERE id = ? AND user_id = ? AND archived_at IS NULL',
-    args: [now(), req.params.id, userId],
+  const owned = await db.execute({
+    sql: 'SELECT id FROM items WHERE id = ? AND user_id = ?',
+    args: [req.params.id, userId],
   })
-  if (result.rowsAffected === 0) {
+  if (owned.rows.length === 0) {
     res.status(404).json({ error: 'item not found' })
     return
   }
+  const itemId = (owned.rows[0] as unknown as { id: number }).id
+  // batch = one atomic transaction: all of these succeed or none do
+  await db.batch(
+    [
+      { sql: 'UPDATE daily_picks SET skipped_item_id = NULL WHERE skipped_item_id = ?', args: [itemId] },
+      { sql: 'DELETE FROM daily_picks WHERE item_id = ?', args: [itemId] },
+      { sql: 'DELETE FROM revisions WHERE item_id = ?', args: [itemId] },
+      { sql: 'DELETE FROM items WHERE id = ?', args: [itemId] },
+    ],
+    'write',
+  )
   res.json({ ok: true })
 })
