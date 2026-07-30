@@ -13,7 +13,7 @@ export async function sendLoginEmail(to: string, code: string, link: string): Pr
 
   try {
     await resend.emails.send({
-      from: 'Ingrain <onboarding@resend.dev>',
+      from: 'Ingrain <noreply@send.algovision.dev>',
       to,
       subject: `${code} is your Ingrain sign-in code`,
       html: `
