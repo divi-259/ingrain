@@ -4,3 +4,4 @@ server/data/
 server/.env
 .DS_Store
 architecture.md
+CLAUDE.md
