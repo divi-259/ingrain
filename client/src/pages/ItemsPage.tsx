@@ -15,6 +15,9 @@ export default function ItemsPage() {
   const [editTitle, setEditTitle] = useState('')
   const [editNotes, setEditNotes] = useState('')
 
+  // id of the row currently showing the inline delete confirmation
+  const [confirmingId, setConfirmingId] = useState<number | null>(null)
+
   async function refresh() {
     try {
       const data = await apiFetch<{ items: Item[] }>('/api/items')
@@ -48,6 +51,7 @@ export default function ItemsPage() {
   }
 
   function startEdit(item: Item) {
+    setConfirmingId(null)
     setEditingId(item.id)
     setEditTitle(item.title)
     setEditNotes(item.notes)
@@ -68,9 +72,9 @@ export default function ItemsPage() {
   }
 
   async function deleteItem(item: Item) {
-    if (!confirm(`Delete "${item.title}"? This permanently removes it and its revision history.`)) return
     try {
       await apiFetch(`/api/items/${item.id}`, { method: 'DELETE' })
+      setConfirmingId(null)
       await refresh()
     } catch (err) {
       setError((err as Error).message)
@@ -134,8 +138,20 @@ export default function ItemsPage() {
                 </span>
               </div>
               <div className="item-actions">
-                <button type="button" onClick={() => startEdit(item)}>Edit</button>
-                <button type="button" onClick={() => deleteItem(item)}>Delete</button>
+                {confirmingId === item.id ? (
+                  <>
+                    <span className="muted">Delete forever? History goes too.</span>
+                    <button type="button" className="danger" onClick={() => deleteItem(item)}>
+                      Yes, delete
+                    </button>
+                    <button type="button" onClick={() => setConfirmingId(null)}>Cancel</button>
+                  </>
+                ) : (
+                  <>
+                    <button type="button" onClick={() => startEdit(item)}>Edit</button>
+                    <button type="button" onClick={() => setConfirmingId(item.id)}>Delete</button>
+                  </>
+                )}
               </div>
             </li>
           ),
