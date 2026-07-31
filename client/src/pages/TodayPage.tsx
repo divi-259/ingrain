@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { apiFetch, daysAgoLabel, localDate } from '../api'
+import { apiFetch, daysAgoLabel, isToday, localDate } from '../api'
 
 interface Pick {
   date: string
@@ -31,7 +31,9 @@ export default function TodayPage() {
   const [pick, setPick] = useState<Pick | null>(null)
   const [streak, setStreak] = useState<Streak | null>(null)
   const [note, setNote] = useState('')
+  const [submittedNote, setSubmittedNote] = useState('')
   const [loaded, setLoaded] = useState(false)
+  const [busy, setBusy] = useState(false) // a Done/Skip request is in flight
   const [error, setError] = useState('')
 
   async function load() {
@@ -52,6 +54,8 @@ export default function TodayPage() {
   }, [])
 
   async function markDone() {
+    if (busy) return
+    setBusy(true)
     try {
       const data = await apiFetch<TodayResponse>('/api/today/done', {
         method: 'POST',
@@ -59,13 +63,18 @@ export default function TodayPage() {
       })
       setPick(data.pick)
       setStreak(data.streak)
+      setSubmittedNote(note.trim())
       setNote('')
     } catch (err) {
       setError((err as Error).message)
+    } finally {
+      setBusy(false)
     }
   }
 
   async function skip() {
+    if (busy) return
+    setBusy(true)
     try {
       const data = await apiFetch<TodayResponse>('/api/today/skip', {
         method: 'POST',
@@ -76,6 +85,8 @@ export default function TodayPage() {
       setNote('')
     } catch (err) {
       setError((err as Error).message)
+    } finally {
+      setBusy(false)
     }
   }
 
@@ -91,6 +102,12 @@ export default function TodayPage() {
       </main>
     )
   }
+
+  // The note behind today's completion: what was just typed, or — after a
+  // reload — the server's lastNote when it was written today.
+  const completedNote =
+    submittedNote ||
+    (pick.lastNote && isToday(pick.lastNote.revisedAt) ? pick.lastNote.note : '')
 
   return (
     <main>
@@ -119,11 +136,18 @@ export default function TodayPage() {
         </p>
 
         {pick.completed ? (
-          <p className="done-note">
-            {streak && streak.current > 1
-              ? `Done for today 🎉 — that's ${streak.current} days in a row. Come back tomorrow to make it ${streak.current + 1}.`
-              : 'Done for today 🎉 — come back tomorrow to start a streak.'}
-          </p>
+          <>
+            <p className="done-note">
+              {streak && streak.current > 1
+                ? `Done for today 🎉 — that's ${streak.current} days in a row. Come back tomorrow to make it ${streak.current + 1}.`
+                : 'Done for today 🎉 — come back tomorrow to start a streak.'}
+            </p>
+            {completedNote && (
+              <blockquote className="last-note">
+                You noted: “{completedNote}”
+              </blockquote>
+            )}
+          </>
         ) : (
           <>
             {pick.why && (
@@ -146,14 +170,16 @@ export default function TodayPage() {
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder="One thing you remembered or re-learned (optional)"
+              aria-label="Revision note"
+              maxLength={500}
               rows={2}
             />
             <div className="today-actions">
-              <button type="button" className="primary" onClick={markDone}>
+              <button type="button" className="primary" onClick={markDone} disabled={busy}>
                 Done — I revised it
               </button>
               {pick.skipAvailable ? (
-                <button type="button" onClick={skip} title="You get one skip per day">
+                <button type="button" onClick={skip} disabled={busy} title="You get one skip per day">
                   Skip (1 per day)
                 </button>
               ) : (

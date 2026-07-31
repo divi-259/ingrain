@@ -162,7 +162,7 @@ todayRouter.post('/done', async (req, res) => {
     res.status(409).json({ error: 'already completed today' })
     return
   }
-  const note = typeof req.body.note === 'string' ? req.body.note.trim() : ''
+  const note = typeof req.body.note === 'string' ? req.body.note.trim().slice(0, 500) : ''
   await db.execute({
     sql: 'INSERT INTO revisions (item_id, revised_at, note) VALUES (?, ?, ?)',
     args: [row.item_id, now(), note],

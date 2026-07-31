@@ -18,7 +18,9 @@ export async function apiFetch<T>(path: string, options: RequestInit = {}): Prom
   })
   const body = await res.json().catch(() => ({}))
   if (!res.ok) {
-    throw new Error(body.error ?? `request failed (${res.status})`)
+    const err = new Error(body.error ?? `request failed (${res.status})`) as Error & { status: number }
+    err.status = res.status
+    throw err
   }
   return body as T
 }
@@ -29,6 +31,14 @@ export function localDate(): string {
   const d = new Date()
   const pad = (n: number) => String(n).padStart(2, '0')
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+}
+
+// True when the timestamp falls on the browser's current calendar day
+export function isToday(iso: string): boolean {
+  const [y, m, d] = localDate().split('-').map(Number)
+  const start = new Date(y, m - 1, d).getTime()
+  const t = Date.parse(iso)
+  return t >= start && t < start + 86_400_000
 }
 
 // "never" / "today" / "yesterday" / "N days ago"
