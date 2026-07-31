@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { apiFetch, daysAgoLabel, isToday, localDate } from '../api'
+import { apiFetch, daysAgoLabel, isToday, localDate, type Item } from '../api'
+import Heatmap from '../components/Heatmap'
 
 interface Pick {
   date: string
@@ -27,6 +28,12 @@ interface TodayResponse {
   streak: Streak
 }
 
+interface History {
+  completedDates: string[]
+  streak: Streak
+  totals: { daysCompleted: number; revisions: number; activeItems: number }
+}
+
 export default function TodayPage() {
   const [pick, setPick] = useState<Pick | null>(null)
   const [streak, setStreak] = useState<Streak | null>(null)
@@ -35,6 +42,17 @@ export default function TodayPage() {
   const [loaded, setLoaded] = useState(false)
   const [busy, setBusy] = useState(false) // a Done/Skip request is in flight
   const [error, setError] = useState('')
+
+  // The side rail: history feeds the stats + mini heatmap, items feed
+  // the "in rotation" glance. Both are enrichment — if they fail, the
+  // page still works, so their errors are swallowed.
+  const [history, setHistory] = useState<History | null>(null)
+  const [items, setItems] = useState<Item[]>([])
+
+  async function loadRail() {
+    apiFetch<History>(`/api/history?date=${localDate()}`).then(setHistory).catch(() => {})
+    apiFetch<{ items: Item[] }>('/api/items').then((d) => setItems(d.items)).catch(() => {})
+  }
 
   async function load() {
     try {
@@ -51,6 +69,7 @@ export default function TodayPage() {
 
   useEffect(() => {
     load()
+    loadRail()
   }, [])
 
   async function markDone() {
@@ -65,6 +84,7 @@ export default function TodayPage() {
       setStreak(data.streak)
       setSubmittedNote(note.trim())
       setNote('')
+      loadRail() // today just turned green — refresh stats + heatmap
     } catch (err) {
       setError((err as Error).message)
     } finally {
@@ -109,8 +129,14 @@ export default function TodayPage() {
     submittedNote ||
     (pick.lastNote && isToday(pick.lastNote.revisedAt) ? pick.lastNote.note : '')
 
+  // The 3 items the lottery is most likely to serve next — the ones
+  // untouched the longest (never-revised items sort by creation).
+  const rotation = [...items]
+    .sort((a, b) => (a.lastRevisedAt ?? a.createdAt).localeCompare(b.lastRevisedAt ?? b.createdAt))
+    .slice(0, 3)
+
   return (
-    <main>
+    <main className="today-main">
       <h1>Today</h1>
       {streak && streak.current > 0 && (
         <p className="streak">
@@ -127,6 +153,7 @@ export default function TodayPage() {
       )}
       {error && <p className="error">{error}</p>}
 
+      <div className="today-layout">
       <div className="today-card">
         <h2>{pick.item.title}</h2>
         {pick.item.notes && <p>{pick.item.notes}</p>}
@@ -140,7 +167,7 @@ export default function TodayPage() {
             <p className="done-note">
               {streak && streak.current > 1
                 ? `Done for today 🎉 — that's ${streak.current} days in a row. Come back tomorrow to make it ${streak.current + 1}.`
-                : 'Done for today 🎉 — come back tomorrow to start a streak.'}
+                : `Done for today 🎉 — that's day 1. Come back tomorrow to make it 2.`}
             </p>
             {completedNote && (
               <blockquote className="last-note">
@@ -188,6 +215,51 @@ export default function TodayPage() {
             </div>
           </>
         )}
+      </div>
+
+      <aside className="rail">
+        {history && (
+          <div className="stat-row">
+            <div className="stat">
+              <span className="stat-value">{history.streak.current > 0 ? `🔥 ${history.streak.current}` : '—'}</span>
+              <span className="muted">streak</span>
+            </div>
+            <div className="stat">
+              <span className="stat-value">{history.totals.daysCompleted}</span>
+              <span className="muted">days</span>
+            </div>
+            <div className="stat">
+              <span className="stat-value">{history.totals.revisions}</span>
+              <span className="muted">revisions</span>
+            </div>
+          </div>
+        )}
+
+        {history && (
+          <div>
+            <h2 className="rail-title">Last 8 weeks</h2>
+            <Heatmap completedDates={history.completedDates} weeks={8} />
+            <Link to="/journey" className="rail-link">Full journey →</Link>
+          </div>
+        )}
+
+        {rotation.length > 0 && (
+          <div>
+            <h2 className="rail-title">In rotation</h2>
+            <ul className="rotation-list">
+              {rotation.map((item) => (
+                <li key={item.id}>
+                  <span className="rotation-title">{item.title}</span>
+                  <span className="muted">{daysAgoLabel(item.lastRevisedAt)}</span>
+                </li>
+              ))}
+            </ul>
+            {items.length > 3 && (
+              <Link to="/items" className="rail-link">All {items.length} items →</Link>
+            )}
+          </div>
+        )}
+      </aside>
       </div>
     </main>
   )

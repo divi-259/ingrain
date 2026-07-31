@@ -306,6 +306,67 @@ button.primary:hover:not(:disabled) {
   resize: vertical;
 }
 
+/* Today-page side rail (stats, mini heatmap, rotation) */
+.rail {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+  margin-top: 2rem;
+}
+
+.rail .stat-row {
+  margin-bottom: 0;
+}
+
+.rail-title {
+  font-size: 0.95rem;
+  margin: 0 0 0.5rem;
+}
+
+.rail-link {
+  display: inline-block;
+  margin-top: 0.5rem;
+  color: #555;
+  font-size: 0.85rem;
+}
+
+.rotation-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.rotation-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.rotation-title {
+  overflow-wrap: anywhere;
+}
+
+/* Wide screens: Today card and rail sit side by side */
+@media (min-width: 1000px) {
+  main.today-main {
+    max-width: 1020px;
+  }
+
+  .today-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 3rem;
+    align-items: start;
+  }
+
+  .rail {
+    margin-top: 0;
+  }
+}
+
 @media (max-width: 600px) {
   /* Nav: drop the email, keep everything on one line */
   .nav-user {
