@@ -34,7 +34,8 @@ CREATE TABLE IF NOT EXISTS items (
 CREATE TABLE IF NOT EXISTS revisions (
   id          INTEGER PRIMARY KEY,
   item_id     INTEGER NOT NULL REFERENCES items(id),
-  revised_at  TEXT NOT NULL                -- full timestamp, one row per completion
+  revised_at  TEXT NOT NULL,               -- full timestamp, one row per completion
+  note        TEXT NOT NULL DEFAULT ''     -- optional "what I remembered" (see migrations in db.ts)
 );
 
 CREATE TABLE IF NOT EXISTS daily_picks (

@@ -11,6 +11,7 @@ interface Pick {
     lastRevisedAt: string | null
     revisionCount: number
   }
+  lastNote: { note: string; revisedAt: string } | null
   skipAvailable: boolean
   completed: boolean
 }
@@ -28,6 +29,7 @@ interface TodayResponse {
 export default function TodayPage() {
   const [pick, setPick] = useState<Pick | null>(null)
   const [streak, setStreak] = useState<Streak | null>(null)
+  const [note, setNote] = useState('')
   const [loaded, setLoaded] = useState(false)
   const [error, setError] = useState('')
 
@@ -52,10 +54,11 @@ export default function TodayPage() {
     try {
       const data = await apiFetch<TodayResponse>('/api/today/done', {
         method: 'POST',
-        body: JSON.stringify({ date: localDate() }),
+        body: JSON.stringify({ date: localDate(), note }),
       })
       setPick(data.pick)
       setStreak(data.streak)
+      setNote('')
     } catch (err) {
       setError((err as Error).message)
     }
@@ -69,6 +72,7 @@ export default function TodayPage() {
       })
       setPick(data.pick)
       setStreak(data.streak)
+      setNote('')
     } catch (err) {
       setError((err as Error).message)
     }
@@ -120,18 +124,32 @@ export default function TodayPage() {
               : 'Done for today 🎉 — come back tomorrow to start a streak.'}
           </p>
         ) : (
-          <div className="today-actions">
-            <button type="button" className="primary" onClick={markDone}>
-              Done — I revised it
-            </button>
-            {pick.skipAvailable ? (
-              <button type="button" onClick={skip} title="You get one skip per day">
-                Skip (1 per day)
-              </button>
-            ) : (
-              <span className="muted">skip used for today</span>
+          <>
+            {pick.lastNote && (
+              <blockquote className="last-note">
+                Last time you noted: “{pick.lastNote.note}”
+              </blockquote>
             )}
-          </div>
+            <textarea
+              className="note-input"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="One thing you remembered or re-learned (optional)"
+              rows={2}
+            />
+            <div className="today-actions">
+              <button type="button" className="primary" onClick={markDone}>
+                Done — I revised it
+              </button>
+              {pick.skipAvailable ? (
+                <button type="button" onClick={skip} title="You get one skip per day">
+                  Skip (1 per day)
+                </button>
+              ) : (
+                <span className="muted">skip used for today</span>
+              )}
+            </div>
+          </>
         )}
       </div>
     </main>

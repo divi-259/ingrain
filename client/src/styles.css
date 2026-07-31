@@ -277,3 +277,23 @@ button.primary:hover:not(:disabled) {
 .heatmap-cell.future {
   background: transparent;
 }
+
+.last-note {
+  margin: 1rem 0 0;
+  padding: 0.5rem 0.75rem;
+  border-left: 3px solid #1a7f37;
+  background: #f4faf5;
+  color: #333;
+  font-style: italic;
+}
+
+.note-input {
+  font: inherit;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 1rem;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  resize: vertical;
+}

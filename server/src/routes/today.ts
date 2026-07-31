@@ -52,10 +52,18 @@ async function pickResponse(row: PickRow, userId: number) {
           WHERE i.id = ? GROUP BY i.id`,
     args: [row.item_id],
   })
+  // The most recent thing you wrote about this item — shown before you
+  // revise, so your past self can prime your current self.
+  const lastNote = await db.execute({
+    sql: `SELECT note, revised_at AS revisedAt FROM revisions
+          WHERE item_id = ? AND note != '' ORDER BY revised_at DESC LIMIT 1`,
+    args: [row.item_id],
+  })
   return {
     pick: {
       date: row.date,
       item: result.rows[0],
+      lastNote: lastNote.rows[0] ?? null,
       skipAvailable: row.skipped_item_id === null,
       completed: row.completed_at !== null,
     },
@@ -138,9 +146,10 @@ todayRouter.post('/done', async (req, res) => {
     res.status(409).json({ error: 'already completed today' })
     return
   }
+  const note = typeof req.body.note === 'string' ? req.body.note.trim() : ''
   await db.execute({
-    sql: 'INSERT INTO revisions (item_id, revised_at) VALUES (?, ?)',
-    args: [row.item_id, now()],
+    sql: 'INSERT INTO revisions (item_id, revised_at, note) VALUES (?, ?, ?)',
+    args: [row.item_id, now(), note],
   })
   await db.execute({
     sql: 'UPDATE daily_picks SET completed_at = ? WHERE id = ?',
