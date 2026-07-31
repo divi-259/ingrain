@@ -15,15 +15,27 @@ interface Pick {
   completed: boolean
 }
 
+interface Streak {
+  current: number
+  best: number
+}
+
+interface TodayResponse {
+  pick: Pick | null
+  streak: Streak
+}
+
 export default function TodayPage() {
   const [pick, setPick] = useState<Pick | null>(null)
+  const [streak, setStreak] = useState<Streak | null>(null)
   const [loaded, setLoaded] = useState(false)
   const [error, setError] = useState('')
 
   async function load() {
     try {
-      const data = await apiFetch<{ pick: Pick | null }>(`/api/today?date=${localDate()}`)
+      const data = await apiFetch<TodayResponse>(`/api/today?date=${localDate()}`)
       setPick(data.pick)
+      setStreak(data.streak)
       setError('')
     } catch (err) {
       setError((err as Error).message)
@@ -38,11 +50,12 @@ export default function TodayPage() {
 
   async function markDone() {
     try {
-      const data = await apiFetch<{ pick: Pick }>('/api/today/done', {
+      const data = await apiFetch<TodayResponse>('/api/today/done', {
         method: 'POST',
         body: JSON.stringify({ date: localDate() }),
       })
       setPick(data.pick)
+      setStreak(data.streak)
     } catch (err) {
       setError((err as Error).message)
     }
@@ -50,11 +63,12 @@ export default function TodayPage() {
 
   async function skip() {
     try {
-      const data = await apiFetch<{ pick: Pick }>('/api/today/skip', {
+      const data = await apiFetch<TodayResponse>('/api/today/skip', {
         method: 'POST',
         body: JSON.stringify({ date: localDate() }),
       })
       setPick(data.pick)
+      setStreak(data.streak)
     } catch (err) {
       setError((err as Error).message)
     }
@@ -76,6 +90,19 @@ export default function TodayPage() {
   return (
     <main>
       <h1>Today</h1>
+      {streak && streak.current > 0 && (
+        <p className="streak">
+          🔥 {streak.current}-day streak
+          {streak.best > streak.current && (
+            <span className="muted"> · best {streak.best}</span>
+          )}
+        </p>
+      )}
+      {streak && streak.current === 0 && streak.best > 1 && (
+        <p className="streak muted">
+          best streak {streak.best} days — start a new one today
+        </p>
+      )}
       {error && <p className="error">{error}</p>}
 
       <div className="today-card">
@@ -87,7 +114,11 @@ export default function TodayPage() {
         </p>
 
         {pick.completed ? (
-          <p className="done-note">Done for today 🎉 — come back tomorrow.</p>
+          <p className="done-note">
+            {streak && streak.current > 1
+              ? `Done for today 🎉 — that's ${streak.current} days in a row. Come back tomorrow to make it ${streak.current + 1}.`
+              : 'Done for today 🎉 — come back tomorrow to start a streak.'}
+          </p>
         ) : (
           <div className="today-actions">
             <button type="button" className="primary" onClick={markDone}>

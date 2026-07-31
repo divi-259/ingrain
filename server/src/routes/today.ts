@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { db, now } from '../db.js'
 import { pickWeighted, type Candidate } from '../lib/pick.js'
+import { computeStreak, type Streak } from '../lib/streak.js'
 
 export const todayRouter = Router()
 
@@ -34,7 +35,15 @@ async function getPickRow(userId: number, date: string): Promise<PickRow | undef
   return result.rows[0] as unknown as PickRow | undefined
 }
 
-async function pickResponse(row: PickRow) {
+async function streakFor(userId: number, date: string): Promise<Streak> {
+  const result = await db.execute({
+    sql: 'SELECT date FROM daily_picks WHERE user_id = ? AND completed_at IS NOT NULL',
+    args: [userId],
+  })
+  return computeStreak(result.rows.map((r) => String(r.date)), date)
+}
+
+async function pickResponse(row: PickRow, userId: number) {
   const result = await db.execute({
     sql: `SELECT i.id, i.title, i.notes,
                  MAX(r.revised_at) AS lastRevisedAt,
@@ -50,6 +59,7 @@ async function pickResponse(row: PickRow) {
       skipAvailable: row.skipped_item_id === null,
       completed: row.completed_at !== null,
     },
+    streak: await streakFor(userId, row.date),
   }
 }
 
@@ -65,7 +75,7 @@ todayRouter.get('/', async (req, res) => {
   if (!row) {
     const chosen = pickWeighted(await activeCandidates(userId), date)
     if (!chosen) {
-      res.json({ pick: null })
+      res.json({ pick: null, streak: await streakFor(userId, date) })
       return
     }
     // OR IGNORE + re-read: if two requests race, the UNIQUE(user_id, date)
@@ -77,7 +87,7 @@ todayRouter.get('/', async (req, res) => {
     })
     row = (await getPickRow(userId, date))!
   }
-  res.json(await pickResponse(row))
+  res.json(await pickResponse(row, userId))
 })
 
 todayRouter.post('/skip', async (req, res) => {
@@ -109,7 +119,7 @@ todayRouter.post('/skip', async (req, res) => {
     sql: 'UPDATE daily_picks SET item_id = ?, skipped_item_id = ? WHERE id = ?',
     args: [chosen.id, row.item_id, row.id],
   })
-  res.json(await pickResponse((await getPickRow(userId, date))!))
+  res.json(await pickResponse((await getPickRow(userId, date))!, userId))
 })
 
 todayRouter.post('/done', async (req, res) => {
@@ -136,5 +146,5 @@ todayRouter.post('/done', async (req, res) => {
     sql: 'UPDATE daily_picks SET completed_at = ? WHERE id = ?',
     args: [now(), row.id],
   })
-  res.json(await pickResponse((await getPickRow(userId, date))!))
+  res.json(await pickResponse((await getPickRow(userId, date))!, userId))
 })
