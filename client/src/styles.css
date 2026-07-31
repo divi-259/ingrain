@@ -429,3 +429,39 @@ button.primary:hover:not(:disabled) {
     width: 100%;
   }
 }
+
+/* The daily draw reveal */
+.card-back {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 200px;
+}
+
+.card-back-emoji {
+  font-size: 2.5rem;
+  animation: card-shuffle 0.5s ease-in-out infinite;
+}
+
+@keyframes card-shuffle {
+  0%, 100% { transform: rotate(-6deg); }
+  50% { transform: rotate(6deg) scale(1.08); }
+}
+
+.card-flip {
+  animation: card-flip-in 0.45s ease-out;
+}
+
+@keyframes card-flip-in {
+  from { transform: perspective(700px) rotateY(85deg); opacity: 0.4; }
+  to { transform: perspective(700px) rotateY(0deg); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-back-emoji,
+  .card-flip {
+    animation: none;
+  }
+}

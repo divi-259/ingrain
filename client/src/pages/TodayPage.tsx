@@ -49,6 +49,21 @@ export default function TodayPage() {
   const [history, setHistory] = useState<History | null>(null)
   const [items, setItems] = useState<Item[]>([])
 
+  // The draw reveal: hide the card behind a brief "drawing…" cover, then
+  // flip it over. Once per day per browser session; a skip always re-draws
+  // (it's a genuinely new card); completed picks and reduced-motion users
+  // get the card instantly.
+  const [phase, setPhase] = useState<'drawing' | 'flip' | 'plain'>('plain')
+
+  function runReveal(date: string, force = false) {
+    const key = `ingrain-reveal-${date}`
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (reduced || (!force && sessionStorage.getItem(key))) return
+    sessionStorage.setItem(key, '1')
+    setPhase('drawing')
+    window.setTimeout(() => setPhase('flip'), 900)
+  }
+
   async function loadRail() {
     apiFetch<History>(`/api/history?date=${localDate()}`).then(setHistory).catch(() => {})
     apiFetch<{ items: Item[] }>('/api/items').then((d) => setItems(d.items)).catch(() => {})
@@ -60,6 +75,7 @@ export default function TodayPage() {
       setPick(data.pick)
       setStreak(data.streak)
       setError('')
+      if (data.pick && !data.pick.completed) runReveal(data.pick.date)
     } catch (err) {
       setError((err as Error).message)
     } finally {
@@ -103,6 +119,7 @@ export default function TodayPage() {
       setPick(data.pick)
       setStreak(data.streak)
       setNote('')
+      if (data.pick) runReveal(data.pick.date, true)
     } catch (err) {
       setError((err as Error).message)
     } finally {
@@ -154,7 +171,13 @@ export default function TodayPage() {
       {error && <p className="error">{error}</p>}
 
       <div className="today-layout">
-      <div className="today-card">
+      {phase === 'drawing' ? (
+        <div className="today-card card-back">
+          <span className="card-back-emoji" aria-hidden="true">🎴</span>
+          <p className="muted">Drawing today's card…</p>
+        </div>
+      ) : (
+      <div className={phase === 'flip' ? 'today-card card-flip' : 'today-card'}>
         <h2>{pick.item.title}</h2>
         {pick.item.notes && <p>{pick.item.notes}</p>}
         <p className="muted">
@@ -216,6 +239,7 @@ export default function TodayPage() {
           </>
         )}
       </div>
+      )}
 
       <aside className="rail">
         {history && (
