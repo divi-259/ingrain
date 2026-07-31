@@ -174,7 +174,9 @@ button.primary:hover:not(:disabled) {
   margin-left: auto;
 }
 
-.topnav .brand {
+.topnav a.brand {
+  color: #111;
+  font-weight: 700;
   margin-right: 0;
 }
 

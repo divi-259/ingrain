@@ -39,7 +39,7 @@ export default function App() {
       {user ? (
         <>
           <nav className="topnav">
-            <span className="brand">Ingrain</span>
+            <NavLink to="/" className="brand" end>Ingrain</NavLink>
             <NavLink to="/" end>Today</NavLink>
             <NavLink to="/items">My items</NavLink>
             <NavLink to="/journey">Journey</NavLink>
