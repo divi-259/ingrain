@@ -31,6 +31,10 @@ itemsRouter.post('/', async (req, res) => {
     res.status(400).json({ error: 'title is required' })
     return
   }
+  if (title.length > 200 || notes.length > 1000) {
+    res.status(400).json({ error: 'title is limited to 200 characters, notes to 1000' })
+    return
+  }
   const inserted = await db.execute({
     sql: 'INSERT INTO items (user_id, title, notes, created_at) VALUES (?, ?, ?, ?)',
     args: [userId, title, notes, now()],
@@ -52,8 +56,12 @@ itemsRouter.put('/:id', async (req, res) => {
     res.status(400).json({ error: 'title is required' })
     return
   }
+  if (title.length > 200 || notes.length > 1000) {
+    res.status(400).json({ error: 'title is limited to 200 characters, notes to 1000' })
+    return
+  }
   const result = await db.execute({
-    sql: 'UPDATE items SET title = ?, notes = ? WHERE id = ? AND user_id = ?',
+    sql: 'UPDATE items SET title = ?, notes = ? WHERE id = ? AND user_id = ? AND archived_at IS NULL',
     args: [title, notes, req.params.id, userId],
   })
   if (result.rowsAffected === 0) {
@@ -63,12 +71,15 @@ itemsRouter.put('/:id', async (req, res) => {
   res.json({ ok: true })
 })
 
-// Permanent delete: the item, its revision history, and any daily
-// picks that reference it (foreign keys require cleaning those first).
+// User-facing delete: the item leaves the list and the rotation for
+// good, but completed daily_picks stay so streaks and the heatmap keep
+// the days the user earned. Implemented as a hidden archive so those
+// rows keep a valid item to reference; only today's *unfinished* pick
+// is removed, letting a fresh pick roll.
 itemsRouter.delete('/:id', async (req, res) => {
   const userId = req.user!.id
   const owned = await db.execute({
-    sql: 'SELECT id FROM items WHERE id = ? AND user_id = ?',
+    sql: 'SELECT id FROM items WHERE id = ? AND user_id = ? AND archived_at IS NULL',
     args: [req.params.id, userId],
   })
   if (owned.rows.length === 0) {
@@ -79,10 +90,8 @@ itemsRouter.delete('/:id', async (req, res) => {
   // batch = one atomic transaction: all of these succeed or none do
   await db.batch(
     [
-      { sql: 'UPDATE daily_picks SET skipped_item_id = NULL WHERE skipped_item_id = ?', args: [itemId] },
-      { sql: 'DELETE FROM daily_picks WHERE item_id = ?', args: [itemId] },
-      { sql: 'DELETE FROM revisions WHERE item_id = ?', args: [itemId] },
-      { sql: 'DELETE FROM items WHERE id = ?', args: [itemId] },
+      { sql: 'UPDATE items SET archived_at = ? WHERE id = ?', args: [now(), itemId] },
+      { sql: 'DELETE FROM daily_picks WHERE item_id = ? AND completed_at IS NULL', args: [itemId] },
     ],
     'write',
   )
