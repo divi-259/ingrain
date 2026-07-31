@@ -490,3 +490,8 @@ button.primary:hover:not(:disabled) {
   font-weight: 600;
   text-decoration: none;
 }
+
+.last-note a {
+  color: #1a7f37;
+  overflow-wrap: anywhere;
+}

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { apiFetch, daysAgoLabel, isToday, linkLabel, localDate, type Item } from '../api'
 import Heatmap from '../components/Heatmap'
+import Linkify from '../components/Linkify'
 
 interface Pick {
   date: string
@@ -202,7 +203,7 @@ export default function TodayPage() {
             </p>
             {completedNote && (
               <blockquote className="last-note">
-                You noted: “{completedNote}”
+                You noted: “<Linkify text={completedNote} />”
               </blockquote>
             )}
           </>
@@ -220,7 +221,7 @@ export default function TodayPage() {
             )}
             {pick.lastNote && (
               <blockquote className="last-note">
-                Last time you noted: “{pick.lastNote.note}”
+                Last time you noted: “<Linkify text={pick.lastNote.note} />”
               </blockquote>
             )}
             <textarea
