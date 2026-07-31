@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { apiFetch, localDate } from '../api'
 
 interface History {
@@ -40,6 +40,7 @@ function monthLabel(week: string[]): string {
 export default function JourneyPage() {
   const [history, setHistory] = useState<History | null>(null)
   const [error, setError] = useState('')
+  const heatmapRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     apiFetch<History>(`/api/history?date=${localDate()}`)
@@ -47,25 +48,39 @@ export default function JourneyPage() {
       .catch((err) => setError((err as Error).message))
   }, [])
 
+  // Start the heatmap scrolled to the newest weeks so today is visible
+  useEffect(() => {
+    const el = heatmapRef.current
+    if (el) el.scrollLeft = el.scrollWidth
+  }, [history])
+
   if (error) return <main><h1>Journey</h1><p className="error">{error}</p></main>
   if (!history) return <main><p>Loading…</p></main>
 
   const today = localDate()
   const done = new Set(history.completedDates)
   const weeks = buildWeeks(today)
+  // Days before the first completion aren't "missed" — the user simply
+  // wasn't here yet. No first completion → nothing is missed yet.
+  const firstDone = history.completedDates.length ? [...history.completedDates].sort()[0] : today
+
+  const cellTitle = (day: string) => {
+    if (day > today || day < firstDone) return day
+    return `${day} · ${done.has(day) ? 'revised' : 'missed'}`
+  }
 
   return (
     <main>
       <h1>Journey</h1>
 
       <div className="stat-row">
-        <div className="stat"><span className="stat-value">🔥 {history.streak.current}</span><span className="muted">current streak</span></div>
-        <div className="stat"><span className="stat-value">{history.streak.best}</span><span className="muted">best streak</span></div>
         <div className="stat"><span className="stat-value">{history.totals.daysCompleted}</span><span className="muted">days completed</span></div>
+        <div className="stat"><span className="stat-value">{history.streak.current > 0 ? `🔥 ${history.streak.current}` : '—'}</span><span className="muted">current streak</span></div>
+        <div className="stat"><span className="stat-value">{history.streak.best}</span><span className="muted">best streak</span></div>
         <div className="stat"><span className="stat-value">{history.totals.revisions}</span><span className="muted">revisions</span></div>
       </div>
 
-      <div className="heatmap">
+      <div className="heatmap" ref={heatmapRef}>
         {weeks.map((week, i) => (
           <div key={i} className="heatmap-col">
             <span className="heatmap-month muted">{monthLabel(week)}</span>
@@ -77,7 +92,7 @@ export default function JourneyPage() {
                   : done.has(day) ? 'heatmap-cell done'
                   : 'heatmap-cell'
                 }
-                title={`${day}${done.has(day) ? ' · revised' : day > today ? '' : ' · missed'}`}
+                title={cellTitle(day)}
               />
             ))}
           </div>

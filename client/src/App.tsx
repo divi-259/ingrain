@@ -26,7 +26,12 @@ export default function App() {
   }, [])
 
   async function logout() {
-    await apiFetch('/api/auth/logout', { method: 'POST' })
+    try {
+      await apiFetch('/api/auth/logout', { method: 'POST' })
+    } catch {
+      // Leave the UI logged out even if the request failed — the
+      // session cookie will expire on its own.
+    }
     setUser(null)
   }
 

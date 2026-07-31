@@ -80,6 +80,14 @@ input {
   display: flex;
   flex-direction: column;
   gap: 0.15rem;
+  min-width: 0; /* allow shrinking inside the flex row */
+}
+
+/* Long unbroken titles/notes must wrap, never widen the page */
+.item-main,
+.today-card,
+.last-note {
+  overflow-wrap: anywhere;
 }
 
 .item-title {
@@ -296,4 +304,67 @@ button.primary:hover:not(:disabled) {
   border: 1px solid #ccc;
   border-radius: 6px;
   resize: vertical;
+}
+
+@media (max-width: 600px) {
+  /* Nav: drop the email, keep everything on one line */
+  .nav-user {
+    display: none;
+  }
+
+  .topnav {
+    gap: 0.75rem;
+  }
+
+  .topnav a,
+  .topnav button {
+    white-space: nowrap;
+  }
+
+  .topnav button {
+    margin-left: auto;
+  }
+
+  /* Add form: stack vertically, full-width controls */
+  .add-form {
+    flex-direction: column;
+  }
+
+  .add-form input,
+  .add-form button {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Item rows: let actions / confirmation wrap instead of overflowing */
+  .item-row {
+    flex-wrap: wrap;
+  }
+
+  .item-actions {
+    flex-wrap: wrap;
+    flex-shrink: 1;
+  }
+
+  /* Inline edit form: stack vertically, full-width controls */
+  .item-row .edit-form {
+    flex-direction: column;
+    flex-basis: 100%;
+  }
+
+  .item-row .edit-form input,
+  .item-row .edit-form button {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Today: stack action buttons full width */
+  .today-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .today-actions button {
+    width: 100%;
+  }
 }

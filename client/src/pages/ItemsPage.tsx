@@ -17,6 +17,7 @@ export default function ItemsPage() {
 
   // id of the row currently showing the inline delete confirmation
   const [confirmingId, setConfirmingId] = useState<number | null>(null)
+  const [deleting, setDeleting] = useState(false) // a delete request is in flight
 
   async function refresh() {
     try {
@@ -72,12 +73,16 @@ export default function ItemsPage() {
   }
 
   async function deleteItem(item: Item) {
+    if (deleting) return
+    setDeleting(true)
     try {
       await apiFetch(`/api/items/${item.id}`, { method: 'DELETE' })
       setConfirmingId(null)
       await refresh()
     } catch (err) {
       setError((err as Error).message)
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -91,12 +96,14 @@ export default function ItemsPage() {
           onChange={(e) => setNewTitle(e.target.value)}
           placeholder="Something to learn or revise (15–20 min)"
           aria-label="Title"
+          maxLength={200}
         />
         <input
           value={newNotes}
           onChange={(e) => setNewNotes(e.target.value)}
           placeholder="Notes (optional)"
           aria-label="Notes"
+          maxLength={1000}
         />
         <button type="submit" disabled={!newTitle.trim()}>Add</button>
       </form>
@@ -116,12 +123,14 @@ export default function ItemsPage() {
                   value={editTitle}
                   onChange={(e) => setEditTitle(e.target.value)}
                   aria-label="Edit title"
+                  maxLength={200}
                 />
                 <input
                   value={editNotes}
                   onChange={(e) => setEditNotes(e.target.value)}
                   placeholder="Notes (optional)"
                   aria-label="Edit notes"
+                  maxLength={1000}
                 />
                 <button type="submit" disabled={!editTitle.trim()}>Save</button>
                 <button type="button" onClick={() => setEditingId(null)}>Cancel</button>
@@ -140,8 +149,8 @@ export default function ItemsPage() {
               <div className="item-actions">
                 {confirmingId === item.id ? (
                   <>
-                    <span className="muted">Delete forever? History goes too.</span>
-                    <button type="button" className="danger" onClick={() => deleteItem(item)}>
+                    <span className="muted">Delete this item? Your streak and past days are kept.</span>
+                    <button type="button" className="danger" onClick={() => deleteItem(item)} disabled={deleting}>
                       Yes, delete
                     </button>
                     <button type="button" onClick={() => setConfirmingId(null)}>Cancel</button>
