@@ -41,6 +41,18 @@ authRouter.post('/request-code', async (req, res) => {
   })
   const userId = (userResult.rows[0] as unknown as { id: number }).id
 
+  // Throttle: one code per email per minute — keeps the endpoint from
+  // being used to bomb someone's inbox.
+  const lastCode = await db.execute({
+    sql: 'SELECT created_at FROM login_codes WHERE user_id = ? ORDER BY id DESC LIMIT 1',
+    args: [userId],
+  })
+  const last = lastCode.rows[0] as unknown as { created_at: string } | undefined
+  if (last && Date.now() - Date.parse(last.created_at) < 60_000) {
+    res.status(429).json({ error: 'a code was just sent — wait a minute before requesting another' })
+    return
+  }
+
   // Only the newest code should work — burn any outstanding ones.
   await db.execute({
     sql: 'UPDATE login_codes SET consumed_at = ? WHERE user_id = ? AND consumed_at IS NULL',

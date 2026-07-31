@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { apiFetch } from '../api'
 
 interface User {
@@ -12,6 +12,15 @@ export default function LoginPage({ onLogin }: { onLogin: (user: User) => void }
   const [code, setCode] = useState('')
   const [error, setError] = useState('')
   const [info, setInfo] = useState('')
+  // seconds until "Resend code" can be used again — mirrors the
+  // server's one-code-per-minute throttle
+  const [cooldown, setCooldown] = useState(0)
+
+  useEffect(() => {
+    if (cooldown <= 0) return
+    const t = setTimeout(() => setCooldown((s) => s - 1), 1000)
+    return () => clearTimeout(t)
+  }, [cooldown])
 
   async function requestCode(e?: React.FormEvent) {
     e?.preventDefault()
@@ -21,9 +30,24 @@ export default function LoginPage({ onLogin }: { onLogin: (user: User) => void }
         method: 'POST',
         body: JSON.stringify({ email }),
       })
+      const resent = step === 'code'
       setStep('code')
-      setInfo(`We sent a 6-digit code and a sign-in link to ${email.trim()}.`)
+      setCooldown(60)
+      setInfo(
+        resent
+          ? `A fresh code is on its way to ${email.trim()} — only the newest one works.`
+          : `We sent a 6-digit code and a sign-in link to ${email.trim()}.`,
+      )
     } catch (err) {
+      // Throttled means a code was already sent moments ago (e.g. the
+      // page was refreshed mid-login) — move to code entry instead of
+      // dead-ending; the emailed code is still valid.
+      if ((err as Error & { status?: number }).status === 429) {
+        setStep('code')
+        setCooldown(60)
+        setInfo(`A code was sent to ${email.trim()} moments ago — check your email, or resend in a minute.`)
+        return
+      }
       setError((err as Error).message)
     }
   }
@@ -78,8 +102,8 @@ export default function LoginPage({ onLogin }: { onLogin: (user: User) => void }
             Sign in
           </button>
           <div className="login-links">
-            <button type="button" className="linklike" onClick={() => requestCode()}>
-              Resend code
+            <button type="button" className="linklike" onClick={() => requestCode()} disabled={cooldown > 0}>
+              {cooldown > 0 ? `Resend code (${cooldown}s)` : 'Resend code'}
             </button>
             <button type="button" className="linklike" onClick={() => { setStep('email'); setCode(''); setInfo('') }}>
               Use a different email
