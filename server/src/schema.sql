@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS items (
   user_id      INTEGER NOT NULL REFERENCES users(id),
   title        TEXT NOT NULL,
   notes        TEXT NOT NULL DEFAULT '',
+  link         TEXT NOT NULL DEFAULT '',   -- optional resource URL (see migrations in db.ts)
   created_at   TEXT NOT NULL,
   archived_at  TEXT                        -- soft delete; NULL = active
 );

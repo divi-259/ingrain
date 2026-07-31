@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { apiFetch, daysAgoLabel, type Item } from '../api'
+import { apiFetch, daysAgoLabel, linkLabel, type Item } from '../api'
 
 export default function ItemsPage() {
   const [items, setItems] = useState<Item[]>([])
@@ -9,11 +9,13 @@ export default function ItemsPage() {
   // add form
   const [newTitle, setNewTitle] = useState('')
   const [newNotes, setNewNotes] = useState('')
+  const [newLink, setNewLink] = useState('')
 
   // inline edit: id of the row being edited, plus its draft values
   const [editingId, setEditingId] = useState<number | null>(null)
   const [editTitle, setEditTitle] = useState('')
   const [editNotes, setEditNotes] = useState('')
+  const [editLink, setEditLink] = useState('')
 
   // id of the row currently showing the inline delete confirmation
   const [confirmingId, setConfirmingId] = useState<number | null>(null)
@@ -41,10 +43,11 @@ export default function ItemsPage() {
     try {
       await apiFetch('/api/items', {
         method: 'POST',
-        body: JSON.stringify({ title: newTitle, notes: newNotes }),
+        body: JSON.stringify({ title: newTitle, notes: newNotes, link: newLink }),
       })
       setNewTitle('')
       setNewNotes('')
+      setNewLink('')
       await refresh()
     } catch (err) {
       setError((err as Error).message)
@@ -56,6 +59,7 @@ export default function ItemsPage() {
     setEditingId(item.id)
     setEditTitle(item.title)
     setEditNotes(item.notes)
+    setEditLink(item.link)
   }
 
   async function saveEdit(e: React.FormEvent) {
@@ -63,7 +67,7 @@ export default function ItemsPage() {
     try {
       await apiFetch(`/api/items/${editingId}`, {
         method: 'PUT',
-        body: JSON.stringify({ title: editTitle, notes: editNotes }),
+        body: JSON.stringify({ title: editTitle, notes: editNotes, link: editLink }),
       })
       setEditingId(null)
       await refresh()
@@ -105,6 +109,13 @@ export default function ItemsPage() {
           aria-label="Notes"
           maxLength={1000}
         />
+        <input
+          value={newLink}
+          onChange={(e) => setNewLink(e.target.value)}
+          placeholder="Link (optional)"
+          aria-label="Link"
+          maxLength={2000}
+        />
         <button type="submit" disabled={!newTitle.trim()}>Add</button>
       </form>
 
@@ -132,6 +143,13 @@ export default function ItemsPage() {
                   aria-label="Edit notes"
                   maxLength={1000}
                 />
+                <input
+                  value={editLink}
+                  onChange={(e) => setEditLink(e.target.value)}
+                  placeholder="Link (optional)"
+                  aria-label="Edit link"
+                  maxLength={2000}
+                />
                 <button type="submit" disabled={!editTitle.trim()}>Save</button>
                 <button type="button" onClick={() => setEditingId(null)}>Cancel</button>
               </form>
@@ -141,6 +159,11 @@ export default function ItemsPage() {
               <div className="item-main">
                 <span className="item-title">{item.title}</span>
                 {item.notes && <span className="item-notes">{item.notes}</span>}
+                {item.link && (
+                  <a className="item-link" href={item.link} target="_blank" rel="noreferrer">
+                    {linkLabel(item.link)} ↗
+                  </a>
+                )}
                 <span className="muted">
                   last revised {daysAgoLabel(item.lastRevisedAt)}
                   {item.revisionCount > 0 && ` · ${item.revisionCount}×`}

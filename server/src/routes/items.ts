@@ -4,10 +4,18 @@ import { db, now } from '../db.js'
 export const itemsRouter = Router()
 
 const itemColumns = `
-  i.id, i.title, i.notes, i.created_at AS createdAt, i.archived_at AS archivedAt,
+  i.id, i.title, i.notes, i.link, i.created_at AS createdAt, i.archived_at AS archivedAt,
   MAX(r.revised_at) AS lastRevisedAt,
   COUNT(r.id) AS revisionCount
 `
+
+// Trim, cap, and force an http(s) scheme — prefixing anything schemeless
+// also neutralizes javascript: and friends.
+function cleanLink(raw: unknown): string {
+  let link = typeof raw === 'string' ? raw.trim().slice(0, 2000) : ''
+  if (link && !/^https?:\/\//i.test(link)) link = `https://${link}`
+  return link
+}
 
 itemsRouter.get('/', async (req, res) => {
   const userId = req.user!.id
@@ -36,8 +44,8 @@ itemsRouter.post('/', async (req, res) => {
     return
   }
   const inserted = await db.execute({
-    sql: 'INSERT INTO items (user_id, title, notes, created_at) VALUES (?, ?, ?, ?)',
-    args: [userId, title, notes, now()],
+    sql: 'INSERT INTO items (user_id, title, notes, link, created_at) VALUES (?, ?, ?, ?, ?)',
+    args: [userId, title, notes, cleanLink(req.body.link), now()],
   })
   const result = await db.execute({
     sql: `SELECT ${itemColumns}
@@ -61,8 +69,8 @@ itemsRouter.put('/:id', async (req, res) => {
     return
   }
   const result = await db.execute({
-    sql: 'UPDATE items SET title = ?, notes = ? WHERE id = ? AND user_id = ? AND archived_at IS NULL',
-    args: [title, notes, req.params.id, userId],
+    sql: 'UPDATE items SET title = ?, notes = ?, link = ? WHERE id = ? AND user_id = ? AND archived_at IS NULL',
+    args: [title, notes, cleanLink(req.body.link), req.params.id, userId],
   })
   if (result.rowsAffected === 0) {
     res.status(404).json({ error: 'item not found' })

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { apiFetch, daysAgoLabel, isToday, localDate, type Item } from '../api'
+import { apiFetch, daysAgoLabel, isToday, linkLabel, localDate, type Item } from '../api'
 import Heatmap from '../components/Heatmap'
 
 interface Pick {
@@ -9,6 +9,7 @@ interface Pick {
     id: number
     title: string
     notes: string
+    link: string
     lastRevisedAt: string | null
     revisionCount: number
   }
@@ -184,6 +185,13 @@ export default function TodayPage() {
           last revised {daysAgoLabel(pick.item.lastRevisedAt)}
           {pick.item.revisionCount > 0 && ` · revised ${pick.item.revisionCount}×`}
         </p>
+        {pick.item.link && (
+          <p>
+            <a className="today-link" href={pick.item.link} target="_blank" rel="noreferrer">
+              Open {linkLabel(pick.item.link)} ↗
+            </a>
+          </p>
+        )}
 
         {pick.completed ? (
           <>

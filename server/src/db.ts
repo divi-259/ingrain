@@ -30,7 +30,10 @@ await db.executeMultiple(readFileSync(join(here, 'schema.sql'), 'utf8'))
 // Additive migrations for databases created before a column existed
 // (schema.sql only helps fresh databases). Each is safe to re-run:
 // "duplicate column" just means it's already applied.
-const migrations = ["ALTER TABLE revisions ADD COLUMN note TEXT NOT NULL DEFAULT ''"]
+const migrations = [
+  "ALTER TABLE revisions ADD COLUMN note TEXT NOT NULL DEFAULT ''",
+  "ALTER TABLE items ADD COLUMN link TEXT NOT NULL DEFAULT ''",
+]
 for (const sql of migrations) {
   try {
     await db.execute(sql)

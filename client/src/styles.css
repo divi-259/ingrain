@@ -42,17 +42,24 @@ input {
 .add-form,
 .edit-form {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
   margin-bottom: 1.5rem;
 }
 
+/* Title gets its own full row; notes + link + button share the second */
 .add-form input:first-child,
 .edit-form input:first-child {
-  flex: 2;
+  flex: 1 1 100%;
 }
 
 .add-form input:nth-child(2),
 .edit-form input:nth-child(2) {
+  flex: 2;
+}
+
+.add-form input:nth-child(3),
+.edit-form input:nth-child(3) {
   flex: 1;
 }
 
@@ -464,4 +471,22 @@ button.primary:hover:not(:disabled) {
   .card-flip {
     animation: none;
   }
+}
+
+/* Item links */
+.item-link {
+  color: #1a7f37;
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.item-link:hover,
+.today-link:hover {
+  text-decoration: underline;
+}
+
+.today-link {
+  color: #1a7f37;
+  font-weight: 600;
+  text-decoration: none;
 }

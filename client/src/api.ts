@@ -3,6 +3,7 @@ export interface Item {
   id: number
   title: string
   notes: string
+  link: string
   createdAt: string
   archivedAt: string | null
   lastRevisedAt: string | null
@@ -39,6 +40,16 @@ export function isToday(iso: string): boolean {
   const start = new Date(y, m - 1, d).getTime()
   const t = Date.parse(iso)
   return t >= start && t < start + 86_400_000
+}
+
+// A compact label for an item's link: its hostname ("youtube.com"),
+// falling back to the raw string if it doesn't parse as a URL.
+export function linkLabel(link: string): string {
+  try {
+    return new URL(link).hostname.replace(/^www\./, '')
+  } catch {
+    return link
+  }
 }
 
 // "never" / "today" / "yesterday" / "N days ago"

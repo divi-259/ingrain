@@ -45,7 +45,7 @@ async function streakFor(userId: number, date: string): Promise<Streak> {
 
 async function pickResponse(row: PickRow, userId: number) {
   const result = await db.execute({
-    sql: `SELECT i.id, i.title, i.notes,
+    sql: `SELECT i.id, i.title, i.notes, i.link,
                  MAX(r.revised_at) AS lastRevisedAt,
                  COUNT(r.id) AS revisionCount
           FROM items i LEFT JOIN revisions r ON r.item_id = i.id
