@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, NavLink, Navigate } from 'react-router-do
 import { apiFetch } from './api'
 import TodayPage from './pages/TodayPage'
 import ItemsPage from './pages/ItemsPage'
+import JourneyPage from './pages/JourneyPage'
 import LoginPage from './pages/LoginPage'
 import VerifyPage from './pages/VerifyPage'
 
@@ -41,12 +42,14 @@ export default function App() {
             <span className="brand">Ingrain</span>
             <NavLink to="/" end>Today</NavLink>
             <NavLink to="/items">My items</NavLink>
+            <NavLink to="/journey">Journey</NavLink>
             <span className="nav-user muted">{user.email}</span>
             <button type="button" onClick={logout}>Log out</button>
           </nav>
           <Routes>
             <Route path="/" element={<TodayPage />} />
             <Route path="/items" element={<ItemsPage />} />
+            <Route path="/journey" element={<JourneyPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </>

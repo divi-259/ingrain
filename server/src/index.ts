@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url'
 import { authRouter } from './routes/auth.js'
 import { itemsRouter } from './routes/items.js'
 import { todayRouter } from './routes/today.js'
+import { historyRouter } from './routes/history.js'
 import { requireAuth } from './middleware/auth.js'
 
 const isProd = process.env.NODE_ENV === 'production'
@@ -29,6 +30,7 @@ app.use('/api/auth', authRouter)
 // Everything below requires a valid session cookie
 app.use('/api/items', requireAuth, itemsRouter)
 app.use('/api/today', requireAuth, todayRouter)
+app.use('/api/history', requireAuth, historyRouter)
 
 // In production there is no Vite dev server: Express serves the built
 // client. Any GET that isn't /api/* falls back to index.html so
