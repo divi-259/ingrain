@@ -12,6 +12,7 @@ interface Pick {
     revisionCount: number
   }
   lastNote: { note: string; revisedAt: string } | null
+  why: { multiplier: number; neverRevised: boolean; candidates: number } | null
   skipAvailable: boolean
   completed: boolean
 }
@@ -125,6 +126,16 @@ export default function TodayPage() {
           </p>
         ) : (
           <>
+            {pick.why && (
+              <p className="muted">
+                Why this one?{' '}
+                {pick.why.candidates === 1
+                  ? "It's the only item in rotation."
+                  : pick.why.neverRevised
+                    ? `Never revised yet — new items get a head start (${pick.why.multiplier}× the average odds today).`
+                    : `Its neglect gave it ${pick.why.multiplier}× the average odds today.`}
+              </p>
+            )}
             {pick.lastNote && (
               <blockquote className="last-note">
                 Last time you noted: “{pick.lastNote.note}”

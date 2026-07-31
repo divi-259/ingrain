@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { db, now } from '../db.js'
-import { pickWeighted, type Candidate } from '../lib/pick.js'
+import { pickWeighted, weightFor, type Candidate } from '../lib/pick.js'
 import { computeStreak, type Streak } from '../lib/streak.js'
 
 export const todayRouter = Router()
@@ -64,10 +64,26 @@ async function pickResponse(row: PickRow, userId: number) {
       date: row.date,
       item: result.rows[0],
       lastNote: lastNote.rows[0] ?? null,
+      why: await whyPicked(userId, row.item_id, row.date),
       skipAvailable: row.skipped_item_id === null,
       completed: row.completed_at !== null,
     },
     streak: await streakFor(userId, row.date),
+  }
+}
+
+// How the picked item's odds compared to the field, so the client can
+// say "2.6× the average odds today" instead of the pick feeling random.
+async function whyPicked(userId: number, itemId: number, date: string) {
+  const candidates = await activeCandidates(userId)
+  const picked = candidates.find((c) => c.id === itemId)
+  if (!picked) return null
+  const weights = candidates.map((c) => weightFor(c, date))
+  const avg = weights.reduce((a, b) => a + b, 0) / candidates.length
+  return {
+    multiplier: Math.round((weightFor(picked, date) / avg) * 10) / 10,
+    neverRevised: picked.lastRevisedAt === null,
+    candidates: candidates.length,
   }
 }
 
