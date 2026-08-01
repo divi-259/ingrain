@@ -16,6 +16,32 @@ export default function App() {
   const [user, setUser] = useState<User | null>(null)
   const [checked, setChecked] = useState(false)
 
+  // Theme: index.html already applied saved-or-system before first paint;
+  // this state just mirrors <html data-theme> so the toggle icon is right.
+  const [theme, setTheme] = useState<'light' | 'dark'>(
+    document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light',
+  )
+
+  function toggleTheme() {
+    const next = theme === 'dark' ? 'light' : 'dark'
+    document.documentElement.dataset.theme = next
+    localStorage.setItem('ingrain-theme', next)
+    setTheme(next)
+  }
+
+  // Until the user explicitly toggles, keep following live system changes
+  useEffect(() => {
+    const mq = matchMedia('(prefers-color-scheme: dark)')
+    const follow = () => {
+      if (localStorage.getItem('ingrain-theme')) return
+      const next = mq.matches ? 'dark' : 'light'
+      document.documentElement.dataset.theme = next
+      setTheme(next)
+    }
+    mq.addEventListener('change', follow)
+    return () => mq.removeEventListener('change', follow)
+  }, [])
+
   // The auth gate: ask the server who we are. The session cookie rides
   // along automatically; a 401 just means "show the login screen".
   useEffect(() => {
@@ -49,6 +75,15 @@ export default function App() {
             <NavLink to="/items">My items</NavLink>
             <NavLink to="/journey">Journey</NavLink>
             <span className="nav-user muted">{user.email}</span>
+            <button
+              type="button"
+              className="theme-toggle"
+              onClick={toggleTheme}
+              title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+              aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            >
+              {theme === 'dark' ? '☀️' : '🌙'}
+            </button>
             <button type="button" onClick={logout}>Log out</button>
           </nav>
           <Routes>

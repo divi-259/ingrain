@@ -30,31 +30,32 @@
   color: var(--text);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --accent: #22c55e;
-    --accent-strong: #4ade80;
-    --accent-text: #4ade80;
-    --accent-soft: rgba(34, 197, 94, 0.16);
-    --accent-wash: rgba(34, 197, 94, 0.09);
+/* Dark theme: the <html data-theme> attribute is set before first paint
+   by the inline script in index.html (saved choice, else system), and
+   flipped at runtime by the nav toggle. */
+:root[data-theme='dark'] {
+  --accent: #22c55e;
+  --accent-strong: #4ade80;
+  --accent-text: #4ade80;
+  --accent-soft: rgba(34, 197, 94, 0.16);
+  --accent-wash: rgba(34, 197, 94, 0.09);
 
-    --bg: #15171b;
-    --surface: #1e2126;
-    --hover: rgba(255, 255, 255, 0.05);
-    --text: #e7e9ec;
-    --text-muted: #969da7;
-    --border: rgba(255, 255, 255, 0.1);
-    --cell: #272b31;
+  --bg: #15171b;
+  --surface: #1e2126;
+  --hover: rgba(255, 255, 255, 0.05);
+  --text: #e7e9ec;
+  --text-muted: #969da7;
+  --border: rgba(255, 255, 255, 0.1);
+  --cell: #272b31;
 
-    --danger: #ef4444;
-    --danger-strong: #dc2626;
-    --danger-text: #f87171;
+  --danger: #ef4444;
+  --danger-strong: #dc2626;
+  --danger-text: #f87171;
 
-    --shadow: 0 1px 2px rgba(0, 0, 0, 0.25), 0 4px 16px rgba(0, 0, 0, 0.25);
-    --shadow-lift: 0 2px 4px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.25), 0 4px 16px rgba(0, 0, 0, 0.25);
+  --shadow-lift: 0 2px 4px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
 
-    color-scheme: dark;
-  }
+  color-scheme: dark;
 }
 
 /* ---------- Base ---------- */
@@ -641,4 +642,10 @@ input::placeholder {
 .last-note a {
   color: var(--accent-text);
   overflow-wrap: anywhere;
+}
+
+.theme-toggle {
+  padding: 0.3rem 0.5rem;
+  border-radius: 999px;
+  line-height: 1;
 }
