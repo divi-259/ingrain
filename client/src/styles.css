@@ -1,6 +1,6 @@
 /* ---------- Design tokens ----------
    Every color/radius/shadow in the app comes from these variables.
-   Dark mode = swapping the values in the media query below. */
+   Dark mode = the same tokens swapped in :root[data-theme='dark'] below. */
 :root {
   --accent: #16a34a;        /* actions, filled heatmap, links */
   --accent-strong: #15803d; /* hover state of the accent */
