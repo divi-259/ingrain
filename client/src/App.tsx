@@ -74,7 +74,7 @@ export default function App() {
             <NavLink to="/" end>Today</NavLink>
             <NavLink to="/items">My items</NavLink>
             <NavLink to="/journey">Journey</NavLink>
-            <span className="nav-user muted">{user.email}</span>
+            <span className="nav-user muted" title={user.email}>{user.email}</span>
             <button
               type="button"
               className="theme-toggle"

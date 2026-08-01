@@ -241,14 +241,27 @@ input::placeholder {
   z-index: 10;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  max-width: 640px;
+  gap: 0.4rem;
+  width: min(700px, calc(100% - 1.5rem));
   margin: 0.75rem auto 0;
   padding: 0.5rem 0.9rem;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 999px;
   box-shadow: var(--shadow);
+  box-sizing: border-box;
+}
+
+/* Never let nav items wrap internally; the email is the only thing
+   allowed to shrink (it ellipsizes, full address on hover). */
+.topnav a,
+.topnav button {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.topnav button {
+  padding: 0.35rem 0.8rem;
 }
 
 .topnav .brand {
@@ -259,7 +272,7 @@ input::placeholder {
 .topnav a {
   color: var(--text-muted);
   text-decoration: none;
-  padding: 0.3rem 0.75rem;
+  padding: 0.3rem 0.65rem;
   border-radius: 999px;
   transition: background 0.15s ease, color 0.15s ease;
 }
@@ -276,6 +289,11 @@ input::placeholder {
 
 .nav-user {
   margin-left: auto;
+  min-width: 0;
+  flex: 0 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .topnav a.brand {
@@ -524,7 +542,8 @@ input::placeholder {
 
   .topnav {
     gap: 0.25rem;
-    margin: 0.5rem 0.5rem 0;
+    width: calc(100% - 1rem);
+    margin: 0.5rem auto 0;
     top: 0.5rem;
   }
 
