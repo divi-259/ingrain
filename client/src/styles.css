@@ -234,6 +234,21 @@ input::placeholder {
   flex-shrink: 0;
 }
 
+/* Delete confirmation: its own full-width row under the item, so the
+   long question never squeezes the title into a skinny column. */
+.item-row {
+  flex-wrap: wrap;
+}
+
+.confirm-row {
+  flex: 1 1 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
 /* ---------- Nav: floating sticky bar ---------- */
 .topnav {
   position: sticky;

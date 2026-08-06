@@ -169,22 +169,21 @@ export default function ItemsPage() {
                   {item.revisionCount > 0 && ` · ${item.revisionCount}×`}
                 </span>
               </div>
-              <div className="item-actions">
-                {confirmingId === item.id ? (
-                  <>
-                    <span className="muted">Delete this item? Your streak and past days are kept.</span>
-                    <button type="button" className="danger" onClick={() => deleteItem(item)} disabled={deleting}>
-                      Yes, delete
-                    </button>
-                    <button type="button" onClick={() => setConfirmingId(null)}>Cancel</button>
-                  </>
-                ) : (
-                  <>
-                    <button type="button" onClick={() => startEdit(item)}>Edit</button>
-                    <button type="button" onClick={() => setConfirmingId(item.id)}>Delete</button>
-                  </>
-                )}
-              </div>
+              {confirmingId !== item.id && (
+                <div className="item-actions">
+                  <button type="button" onClick={() => startEdit(item)}>Edit</button>
+                  <button type="button" onClick={() => setConfirmingId(item.id)}>Delete</button>
+                </div>
+              )}
+              {confirmingId === item.id && (
+                <div className="confirm-row">
+                  <span className="muted">Delete this item? Your streak and past days are kept.</span>
+                  <button type="button" className="danger" onClick={() => deleteItem(item)} disabled={deleting}>
+                    Yes, delete
+                  </button>
+                  <button type="button" onClick={() => setConfirmingId(null)}>Cancel</button>
+                </div>
+              )}
             </li>
           ),
         )}
