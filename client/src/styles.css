@@ -177,6 +177,14 @@ input::placeholder {
   flex: 1;
 }
 
+.backup-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
 /* ---------- Item list ---------- */
 .item-list {
   list-style: none;
@@ -302,15 +310,6 @@ input::placeholder {
   background: var(--accent-soft);
 }
 
-.nav-user {
-  margin-left: auto;
-  min-width: 0;
-  flex: 0 1 auto;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .topnav a.brand {
   color: var(--text);
   font-weight: 700;
@@ -348,38 +347,6 @@ input::placeholder {
 .streak {
   font-weight: 600;
   margin-top: -0.5rem;
-}
-
-/* ---------- Login ---------- */
-.login {
-  text-align: center;
-  padding-top: 4rem;
-}
-
-.login-form {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  max-width: 280px;
-  margin: 1.5rem auto 0;
-}
-
-.login-form input {
-  text-align: center;
-}
-
-.login-links {
-  display: flex;
-  justify-content: space-between;
-}
-
-.linklike {
-  border: none;
-  background: none;
-  padding: 0;
-  color: var(--text-muted);
-  text-decoration: underline;
-  font-size: 0.85rem;
 }
 
 /* ---------- Text helpers ---------- */
@@ -550,11 +517,6 @@ input::placeholder {
 }
 
 @media (max-width: 600px) {
-  /* Nav: drop the email, keep everything on one line */
-  .nav-user {
-    display: none;
-  }
-
   .topnav {
     gap: 0.25rem;
     width: calc(100% - 1rem);

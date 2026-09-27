@@ -1,40 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { apiFetch, daysAgoLabel, isToday, linkLabel, localDate, type Item } from '../api'
+import { daysAgoLabel, isToday, linkLabel, localDate } from '../lib/format'
+import { completeToday, getHistory, getToday, listItems, skipToday, type History, type Item, type Pick, type Streak } from '../lib/store'
 import Heatmap from '../components/Heatmap'
 import Linkify from '../components/Linkify'
-
-interface Pick {
-  date: string
-  item: {
-    id: number
-    title: string
-    notes: string
-    link: string
-    lastRevisedAt: string | null
-    revisionCount: number
-  }
-  lastNote: { note: string; revisedAt: string } | null
-  why: { multiplier: number; neverRevised: boolean; candidates: number } | null
-  skipAvailable: boolean
-  completed: boolean
-}
-
-interface Streak {
-  current: number
-  best: number
-}
-
-interface TodayResponse {
-  pick: Pick | null
-  streak: Streak
-}
-
-interface History {
-  completedDates: string[]
-  streak: Streak
-  totals: { daysCompleted: number; revisions: number; activeItems: number }
-}
 
 export default function TodayPage() {
   const [pick, setPick] = useState<Pick | null>(null)
@@ -42,12 +11,10 @@ export default function TodayPage() {
   const [note, setNote] = useState('')
   const [submittedNote, setSubmittedNote] = useState('')
   const [loaded, setLoaded] = useState(false)
-  const [busy, setBusy] = useState(false) // a Done/Skip request is in flight
   const [error, setError] = useState('')
 
   // The side rail: history feeds the stats + mini heatmap, items feed
-  // the "in rotation" glance. Both are enrichment — if they fail, the
-  // page still works, so their errors are swallowed.
+  // the "in rotation" glance.
   const [history, setHistory] = useState<History | null>(null)
   const [items, setItems] = useState<Item[]>([])
 
@@ -66,14 +33,14 @@ export default function TodayPage() {
     window.setTimeout(() => setPhase('flip'), 900)
   }
 
-  async function loadRail() {
-    apiFetch<History>(`/api/history?date=${localDate()}`).then(setHistory).catch(() => {})
-    apiFetch<{ items: Item[] }>('/api/items').then((d) => setItems(d.items)).catch(() => {})
+  function loadRail() {
+    setHistory(getHistory(localDate()))
+    setItems(listItems())
   }
 
-  async function load() {
+  function load() {
     try {
-      const data = await apiFetch<TodayResponse>(`/api/today?date=${localDate()}`)
+      const data = getToday(localDate())
       setPick(data.pick)
       setStreak(data.streak)
       setError('')
@@ -90,14 +57,9 @@ export default function TodayPage() {
     loadRail()
   }, [])
 
-  async function markDone() {
-    if (busy) return
-    setBusy(true)
+  function markDone() {
     try {
-      const data = await apiFetch<TodayResponse>('/api/today/done', {
-        method: 'POST',
-        body: JSON.stringify({ date: localDate(), note }),
-      })
+      const data = completeToday(localDate(), note)
       setPick(data.pick)
       setStreak(data.streak)
       setSubmittedNote(note.trim())
@@ -105,27 +67,18 @@ export default function TodayPage() {
       loadRail() // today just turned green — refresh stats + heatmap
     } catch (err) {
       setError((err as Error).message)
-    } finally {
-      setBusy(false)
     }
   }
 
-  async function skip() {
-    if (busy) return
-    setBusy(true)
+  function skip() {
     try {
-      const data = await apiFetch<TodayResponse>('/api/today/skip', {
-        method: 'POST',
-        body: JSON.stringify({ date: localDate() }),
-      })
+      const data = skipToday(localDate())
       setPick(data.pick)
       setStreak(data.streak)
       setNote('')
       if (data.pick) runReveal(data.pick.date, true)
     } catch (err) {
       setError((err as Error).message)
-    } finally {
-      setBusy(false)
     }
   }
 
@@ -143,7 +96,7 @@ export default function TodayPage() {
   }
 
   // The note behind today's completion: what was just typed, or — after a
-  // reload — the server's lastNote when it was written today.
+  // reload — the stored lastNote when it was written today.
   const completedNote =
     submittedNote ||
     (pick.lastNote && isToday(pick.lastNote.revisedAt) ? pick.lastNote.note : '')
@@ -234,11 +187,11 @@ export default function TodayPage() {
               rows={2}
             />
             <div className="today-actions">
-              <button type="button" className="primary" onClick={markDone} disabled={busy}>
+              <button type="button" className="primary" onClick={markDone}>
                 Done — I revised it
               </button>
               {pick.skipAvailable ? (
-                <button type="button" onClick={skip} disabled={busy} title="You get one skip per day">
+                <button type="button" onClick={skip} title="You get one skip per day">
                   Skip (1 per day)
                 </button>
               ) : (

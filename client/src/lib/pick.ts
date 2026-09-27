@@ -1,5 +1,5 @@
 export interface Candidate {
-  id: number
+  id: string
   createdAt: string
   lastRevisedAt: string | null
 }

@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react'
-import { apiFetch, daysAgoLabel, linkLabel, type Item } from '../api'
+import { useEffect, useRef, useState } from 'react'
+import { daysAgoLabel, linkLabel } from '../lib/format'
+import { createItem, deleteItem, exportData, importData, listItems, updateItem, type Item } from '../lib/store'
 
 export default function ItemsPage() {
   const [items, setItems] = useState<Item[]>([])
-  const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
   // add form
@@ -12,43 +12,34 @@ export default function ItemsPage() {
   const [newLink, setNewLink] = useState('')
 
   // inline edit: id of the row being edited, plus its draft values
-  const [editingId, setEditingId] = useState<number | null>(null)
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [editTitle, setEditTitle] = useState('')
   const [editNotes, setEditNotes] = useState('')
   const [editLink, setEditLink] = useState('')
 
   // id of the row currently showing the inline delete confirmation
-  const [confirmingId, setConfirmingId] = useState<number | null>(null)
-  const [deleting, setDeleting] = useState(false) // a delete request is in flight
+  const [confirmingId, setConfirmingId] = useState<string | null>(null)
 
-  async function refresh() {
-    try {
-      const data = await apiFetch<{ items: Item[] }>('/api/items')
-      setItems(data.items)
-      setError('')
-    } catch (err) {
-      setError((err as Error).message)
-    } finally {
-      setLoading(false)
-    }
+  const importInputRef = useRef<HTMLInputElement | null>(null)
+
+  function refresh() {
+    setItems(listItems())
   }
 
   useEffect(() => {
     refresh()
   }, [])
 
-  async function addItem(e: React.FormEvent) {
+  function addItem(e: React.FormEvent) {
     e.preventDefault()
     if (!newTitle.trim()) return
     try {
-      await apiFetch('/api/items', {
-        method: 'POST',
-        body: JSON.stringify({ title: newTitle, notes: newNotes, link: newLink }),
-      })
+      createItem({ title: newTitle, notes: newNotes, link: newLink })
       setNewTitle('')
       setNewNotes('')
       setNewLink('')
-      await refresh()
+      setError('')
+      refresh()
     } catch (err) {
       setError((err as Error).message)
     }
@@ -62,31 +53,54 @@ export default function ItemsPage() {
     setEditLink(item.link)
   }
 
-  async function saveEdit(e: React.FormEvent) {
+  function saveEdit(e: React.FormEvent) {
     e.preventDefault()
     try {
-      await apiFetch(`/api/items/${editingId}`, {
-        method: 'PUT',
-        body: JSON.stringify({ title: editTitle, notes: editNotes, link: editLink }),
-      })
+      updateItem(editingId!, { title: editTitle, notes: editNotes, link: editLink })
       setEditingId(null)
-      await refresh()
+      setError('')
+      refresh()
     } catch (err) {
       setError((err as Error).message)
     }
   }
 
-  async function deleteItem(item: Item) {
-    if (deleting) return
-    setDeleting(true)
+  function removeItem(item: Item) {
     try {
-      await apiFetch(`/api/items/${item.id}`, { method: 'DELETE' })
+      deleteItem(item.id)
       setConfirmingId(null)
-      await refresh()
+      setError('')
+      refresh()
     } catch (err) {
       setError((err as Error).message)
-    } finally {
-      setDeleting(false)
+    }
+  }
+
+  function handleExport() {
+    const blob = new Blob([exportData()], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `ingrain-backup-${new Date().toISOString().slice(0, 10)}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  function handleImportClick() {
+    importInputRef.current?.click()
+  }
+
+  async function handleImportFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    e.target.value = '' // allow re-selecting the same file next time
+    if (!file) return
+    try {
+      const text = await file.text()
+      importData(text)
+      setError('')
+      refresh()
+    } catch (err) {
+      setError((err as Error).message)
     }
   }
 
@@ -119,9 +133,21 @@ export default function ItemsPage() {
         <button type="submit" disabled={!newTitle.trim()}>Add</button>
       </form>
 
+      <div className="backup-row">
+        <button type="button" onClick={handleExport}>Export data</button>
+        <button type="button" onClick={handleImportClick}>Import data</button>
+        <input
+          ref={importInputRef}
+          type="file"
+          accept="application/json"
+          onChange={handleImportFile}
+          style={{ display: 'none' }}
+        />
+        <span className="muted">Your data lives only in this browser — export a backup now and then.</span>
+      </div>
+
       {error && <p className="error">{error}</p>}
-      {loading && <p>Loading…</p>}
-      {!loading && items.length === 0 && (
+      {items.length === 0 && (
         <p className="muted">No items yet — add the first thing you want to keep fresh.</p>
       )}
 
@@ -178,7 +204,7 @@ export default function ItemsPage() {
               {confirmingId === item.id && (
                 <div className="confirm-row">
                   <span className="muted">Delete this item? Your streak and past days are kept.</span>
-                  <button type="button" className="danger" onClick={() => deleteItem(item)} disabled={deleting}>
+                  <button type="button" className="danger" onClick={() => removeItem(item)}>
                     Yes, delete
                   </button>
                   <button type="button" onClick={() => setConfirmingId(null)}>Cancel</button>

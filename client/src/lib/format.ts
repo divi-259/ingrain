@@ -1,33 +1,8 @@
-// Shape of an item as the server returns it
-export interface Item {
-  id: number
-  title: string
-  notes: string
-  link: string
-  createdAt: string
-  archivedAt: string | null
-  lastRevisedAt: string | null
-  revisionCount: number
-}
+// Pure display helpers shared across pages. No data access here —
+// see store.ts for that.
 
-// One wrapper for every API call: sets JSON headers, parses the
-// response, and throws the server's { error } message on failure.
-export async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const res = await fetch(path, {
-    headers: { 'content-type': 'application/json' },
-    ...options,
-  })
-  const body = await res.json().catch(() => ({}))
-  if (!res.ok) {
-    const err = new Error(body.error ?? `request failed (${res.status})`) as Error & { status: number }
-    err.status = res.status
-    throw err
-  }
-  return body as T
-}
-
-// The browser's local calendar date, e.g. "2026-07-20". This — not the
-// server's clock — defines what "today" means for the daily pick.
+// The browser's local calendar date, e.g. "2026-07-20". This defines
+// what "today" means for the daily pick.
 export function localDate(): string {
   const d = new Date()
   const pad = (n: number) => String(n).padStart(2, '0')

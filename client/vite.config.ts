@@ -2,13 +2,9 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   plugins: [react()],
-  server: {
-    // Forward /api/* to the Express server so the browser only
-    // ever talks to :5173 — same-origin, no CORS, cookies work.
-    proxy: {
-      '/api': 'http://localhost:3001',
-    },
-  },
-})
+  // GitHub Pages serves this as a project page at /ingrain/, so built
+  // asset URLs need that prefix. Dev keeps serving from / as usual.
+  base: command === 'build' ? '/ingrain/' : '/',
+}))

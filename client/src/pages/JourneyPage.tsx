@@ -1,26 +1,17 @@
 import { useEffect, useState } from 'react'
-import { apiFetch, localDate } from '../api'
+import { localDate } from '../lib/format'
+import { getHistory, type History } from '../lib/store'
 import Heatmap from '../components/Heatmap'
-
-interface History {
-  completedDates: string[]
-  streak: { current: number; best: number }
-  totals: { daysCompleted: number; revisions: number; activeItems: number }
-}
 
 const WEEKS = 26 // half a year of columns fits the 640px layout
 
 export default function JourneyPage() {
   const [history, setHistory] = useState<History | null>(null)
-  const [error, setError] = useState('')
 
   useEffect(() => {
-    apiFetch<History>(`/api/history?date=${localDate()}`)
-      .then(setHistory)
-      .catch((err) => setError((err as Error).message))
+    setHistory(getHistory(localDate()))
   }, [])
 
-  if (error) return <main><h1>Journey</h1><p className="error">{error}</p></main>
   if (!history) return <main><p>Loading…</p></main>
 
   return (
