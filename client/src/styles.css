@@ -9,14 +9,12 @@
   --accent-strong: #155b60; /* anchor: active nav pill, completion, stat numbers */
   --accent-text: #155b60;
   --accent-soft: rgba(21, 91, 96, 0.1);   /* pills, focus rings */
-  --accent-wash: rgba(21, 91, 96, 0.06);  /* tints */
 
   --soft-teal: #6fa9a0;      /* secondary buttons, trail accents */
   --soft-teal-text: #3f7a71;
   --soft-teal-soft: rgba(111, 169, 160, 0.16);
 
   --apricot: #f4a261;        /* links, badges, note highlights */
-  --apricot-strong: #e08a3e;
   --apricot-text: #b9682a;
   --apricot-soft: #fbe3cf;
   --apricot-wash: rgba(244, 162, 97, 0.08);
@@ -59,14 +57,12 @@
   --accent-strong: #6fc2b8;
   --accent-text: #6fc2b8;
   --accent-soft: rgba(79, 168, 160, 0.18);
-  --accent-wash: rgba(79, 168, 160, 0.1);
 
   --soft-teal: #8fc0b7;
   --soft-teal-text: #8fc0b7;
   --soft-teal-soft: rgba(143, 192, 183, 0.16);
 
   --apricot: #f5b37a;
-  --apricot-strong: #f8c08f;
   --apricot-text: #f0ad6e;
   --apricot-soft: rgba(244, 162, 97, 0.18);
   --apricot-wash: rgba(244, 162, 97, 0.1);
