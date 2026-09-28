@@ -1,9 +1,27 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { daysAgoLabel, isToday, linkLabel, localDate } from '../lib/format'
-import { completeToday, getHistory, getToday, listItems, skipToday, type History, type Item, type Pick, type Streak } from '../lib/store'
+import { daysAgoLabel, isToday, linkLabel, localDate, mascotForStreak } from '../lib/format'
+import { completeToday, getHistory, getToday, skipToday, type History, type Pick, type Streak } from '../lib/store'
 import Heatmap from '../components/Heatmap'
 import Linkify from '../components/Linkify'
+import StatCard from '../components/StatCard'
+import MountainIcon from '../components/MountainIcon'
+import Mascot from '../components/Mascot'
+import { randomQuote } from '../lib/quotes'
+import heroImage from '../assets/today-hero.webp'
+
+// The illustrated banner: same on every Today visit, in both themes —
+// it's a decorative daytime scene, not something that needs a dark twin.
+function TodayHero() {
+  return (
+    <div className="hero" style={{ backgroundImage: `url(${heroImage})` }}>
+      <div className="hero-scrim">
+        <h1 className="hero-title">Today</h1>
+        <p className="hero-tagline">Learn today. Build a brighter tomorrow.</p>
+      </div>
+    </div>
+  )
+}
 
 export default function TodayPage() {
   const [pick, setPick] = useState<Pick | null>(null)
@@ -13,10 +31,12 @@ export default function TodayPage() {
   const [loaded, setLoaded] = useState(false)
   const [error, setError] = useState('')
 
-  // The side rail: history feeds the stats + mini heatmap, items feed
-  // the "in rotation" glance.
+  // Picked once per page load — no fetch needed, the quote library ships
+  // with the app.
+  const [quote] = useState(() => randomQuote())
+
+  // The side rail: history feeds the stats + mini heatmap.
   const [history, setHistory] = useState<History | null>(null)
-  const [items, setItems] = useState<Item[]>([])
 
   // The draw reveal: hide the card behind a brief "drawing…" cover, then
   // flip it over. Once per day per browser session; a skip always re-draws
@@ -35,7 +55,6 @@ export default function TodayPage() {
 
   function loadRail() {
     setHistory(getHistory(localDate()))
-    setItems(listItems())
   }
 
   function load() {
@@ -87,10 +106,13 @@ export default function TodayPage() {
   if (!pick) {
     return (
       <main>
-        <h1>Today</h1>
-        <p className="muted">
-          Nothing to pick from yet — <Link to="/items">add your first item</Link> and come back.
-        </p>
+        <TodayHero />
+        <div className="empty-moment">
+          <Mascot expression="curious" size={64} />
+          <p className="muted">
+            Nothing to pick from yet — <Link to="/items">add your first item</Link> and come back.
+          </p>
+        </div>
       </main>
     )
   }
@@ -101,15 +123,9 @@ export default function TodayPage() {
     submittedNote ||
     (pick.lastNote && isToday(pick.lastNote.revisedAt) ? pick.lastNote.note : '')
 
-  // The 3 items the lottery is most likely to serve next — the ones
-  // untouched the longest (never-revised items sort by creation).
-  const rotation = [...items]
-    .sort((a, b) => (a.lastRevisedAt ?? a.createdAt).localeCompare(b.lastRevisedAt ?? b.createdAt))
-    .slice(0, 3)
-
   return (
     <main className="today-main">
-      <h1>Today</h1>
+      <TodayHero />
       {streak && streak.current > 0 && (
         <p className="streak">
           🔥 {streak.current}-day streak
@@ -133,7 +149,19 @@ export default function TodayPage() {
         </div>
       ) : (
       <div className={phase === 'flip' ? 'today-card card-flip' : 'today-card'}>
-        <h2>{pick.item.title}</h2>
+        <div className="card-heading">
+          <button
+            type="button"
+            className={pick.completed ? 'item-checkbox checked' : 'item-checkbox'}
+            onClick={pick.completed ? undefined : markDone}
+            disabled={pick.completed}
+            aria-label={pick.completed ? 'Completed today' : 'Mark as done'}
+          >
+            {pick.completed && '✓'}
+          </button>
+          <h2>{pick.item.title}</h2>
+          <span className="badge-today">Today</span>
+        </div>
         {pick.item.notes && <p>{pick.item.notes}</p>}
         <p className="muted">
           last revised {daysAgoLabel(pick.item.lastRevisedAt)}
@@ -149,11 +177,14 @@ export default function TodayPage() {
 
         {pick.completed ? (
           <>
-            <p className="done-note">
-              {streak && streak.current > 1
-                ? `Done for today 🎉 — that's ${streak.current} days in a row. Come back tomorrow to make it ${streak.current + 1}.`
-                : `Done for today 🎉 — that's day 1. Come back tomorrow to make it 2.`}
-            </p>
+            <div className="done-row">
+              <Mascot expression={mascotForStreak(streak?.current ?? 0)} size={48} />
+              <p className="done-note">
+                {streak && streak.current > 1
+                  ? `Done for today 🎉 — that's ${streak.current} days in a row. Come back tomorrow to make it ${streak.current + 1}.`
+                  : `Done for today 🎉 — that's day 1. Come back tomorrow to make it 2.`}
+              </p>
+            </div>
             {completedNote && (
               <blockquote className="last-note">
                 You noted: “<Linkify text={completedNote} />”
@@ -163,13 +194,16 @@ export default function TodayPage() {
         ) : (
           <>
             {pick.why && (
-              <p className="muted">
-                Why this one?{' '}
-                {pick.why.candidates === 1
-                  ? "It's the only item in rotation."
-                  : pick.why.neverRevised
-                    ? `Never revised yet — new items get a head start (${pick.why.multiplier}× the average odds today).`
-                    : `Its neglect gave it ${pick.why.multiplier}× the average odds today.`}
+              <p className="muted why-row">
+                <Mascot expression="thinking" size={28} />
+                <span>
+                  Why this one?{' '}
+                  {pick.why.candidates === 1
+                    ? "It's the only item in rotation."
+                    : pick.why.neverRevised
+                      ? `Never revised yet — new items get a head start (${pick.why.multiplier}× the average odds today).`
+                      : `Its neglect gave it ${pick.why.multiplier}× the average odds today.`}
+                </span>
               </p>
             )}
             {pick.lastNote && (
@@ -187,6 +221,7 @@ export default function TodayPage() {
               rows={2}
             />
             <div className="today-actions">
+              <Mascot expression="letsgo" size={40} />
               <button type="button" className="primary" onClick={markDone}>
                 Done — I revised it
               </button>
@@ -206,46 +241,31 @@ export default function TodayPage() {
       <aside className="rail">
         {history && (
           <div className="stat-row">
-            <div className="stat">
-              <span className="stat-value">{history.streak.current > 0 ? `🔥 ${history.streak.current}` : '—'}</span>
-              <span className="muted">streak</span>
-            </div>
-            <div className="stat">
-              <span className="stat-value">{history.totals.daysCompleted}</span>
-              <span className="muted">days</span>
-            </div>
-            <div className="stat">
-              <span className="stat-value">{history.totals.revisions}</span>
-              <span className="muted">revisions</span>
-            </div>
+            <StatCard icon="🔥" tone="apricot" value={history.streak.current > 0 ? history.streak.current : '—'} label="streak" />
+            <StatCard icon="📅" tone="teal" value={history.totals.daysCompleted} label="days" />
+            <StatCard icon="🔁" tone="sage" value={history.totals.revisions} label="revisions" />
           </div>
         )}
 
         {history && (
           <div>
-            <h2 className="rail-title">Last 8 weeks</h2>
+            <div className="rail-title-row">
+              <h2 className="rail-title">Last 8 weeks</h2>
+              <span className="handwritten">Progress lives here.</span>
+            </div>
             <Heatmap completedDates={history.completedDates} weeks={8} />
             <Link to="/journey" className="rail-link">Full journey →</Link>
           </div>
         )}
-
-        {rotation.length > 0 && (
-          <div>
-            <h2 className="rail-title">In rotation</h2>
-            <ul className="rotation-list">
-              {rotation.map((item) => (
-                <li key={item.id}>
-                  <span className="rotation-title">{item.title}</span>
-                  <span className="muted">{daysAgoLabel(item.lastRevisedAt)}</span>
-                </li>
-              ))}
-            </ul>
-            {items.length > 3 && (
-              <Link to="/items" className="rail-link">All {items.length} items →</Link>
-            )}
-          </div>
-        )}
       </aside>
+      </div>
+
+      <div className="quote-banner">
+        <MountainIcon className="quote-mountain" />
+        <div>
+          <p className="quote-text">"{quote.text}"</p>
+          <p className="muted">— {quote.author}</p>
+        </div>
       </div>
     </main>
   )

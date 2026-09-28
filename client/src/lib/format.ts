@@ -1,5 +1,15 @@
 // Pure display helpers shared across pages. No data access here —
 // see store.ts for that.
+import type { MascotExpression } from '../components/Mascot'
+
+// Picks a streak-appropriate mascot expression so completions feel earned
+// rather than identical every time: no streak yet is calmer than a
+// multi-day run.
+export function mascotForStreak(current: number): MascotExpression {
+  if (current >= 3) return 'excited'
+  if (current >= 1) return 'happy'
+  return 'calm'
+}
 
 // The browser's local calendar date, e.g. "2026-07-20". This defines
 // what "today" means for the daily pick.

@@ -8,25 +8,59 @@ function fmt(d: Date): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 }
 
-// Columns of 7 days each, Sunday-first, ending at the week containing
-// `today` — the same shape as a GitHub contribution graph.
-function buildWeeks(today: string, weeks: number): string[][] {
-  const [y, m, d] = today.split('-').map(Number)
-  const cursor = new Date(y, m - 1, d)
-  cursor.setDate(cursor.getDate() - cursor.getDay() - (weeks - 1) * 7)
-  return Array.from({ length: weeks }, () =>
-    Array.from({ length: 7 }, () => {
-      const day = fmt(cursor)
-      cursor.setDate(cursor.getDate() + 1)
-      return day
-    }),
-  )
+interface Column {
+  label: string // month name on the first column of that month, '' otherwise
+  days: (string | null)[] // 7 entries, Sunday first; null = no cell here (before
+  // the lookback window, or padding so the month's first/last week aligns
+  // to the Sun-Sat grid) — never a real date from a different month.
 }
 
-// Label a column when the 1st of a month falls inside it
-function monthLabel(week: string[]): string {
-  const first = week.find((day) => day.endsWith('-01'))
-  return first ? MONTHS[Number(first.slice(5, 7)) - 1] : ''
+// One entry per week-column, grouped so every column belongs to exactly one
+// calendar month — a week straddling a month boundary becomes two columns
+// (the tail of the old month, padded with blanks; the head of the new
+// month, also padded with blanks) instead of one column mixing both.
+function buildColumns(today: string, weeks: number): Column[] {
+  const [y, m, d] = today.split('-').map(Number)
+  const end = new Date(y, m - 1, d)
+  const start = new Date(y, m - 1, d)
+  start.setDate(start.getDate() - start.getDay() - (weeks - 1) * 7)
+
+  const firstMonth = new Date(start.getFullYear(), start.getMonth(), 1)
+  const lastMonth = new Date(end.getFullYear(), end.getMonth(), 1)
+
+  const columns: Column[] = []
+
+  for (
+    let mc = new Date(firstMonth);
+    mc <= lastMonth;
+    mc = new Date(mc.getFullYear(), mc.getMonth() + 1, 1)
+  ) {
+    const year = mc.getFullYear()
+    const month = mc.getMonth()
+    const daysInMonth = new Date(year, month + 1, 0).getDate()
+    const firstWeekday = new Date(year, month, 1).getDay()
+
+    let col: (string | null)[] = new Array(firstWeekday).fill(null)
+    let isFirstColOfMonth = true
+
+    const flush = () => {
+      columns.push({ label: isFirstColOfMonth ? MONTHS[month] : '', days: col })
+      isFirstColOfMonth = false
+      col = []
+    }
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(year, month, day)
+      col.push(date < start ? null : fmt(date))
+      if (col.length === 7) flush()
+    }
+    if (col.length > 0) {
+      while (col.length < 7) col.push(null)
+      flush()
+    }
+  }
+
+  return columns
 }
 
 export default function Heatmap({ completedDates, weeks }: { completedDates: string[]; weeks: number }) {
@@ -51,20 +85,24 @@ export default function Heatmap({ completedDates, weeks }: { completedDates: str
 
   return (
     <div className="heatmap" ref={ref}>
-      {buildWeeks(today, weeks).map((week, i) => (
+      {buildColumns(today, weeks).map((col, i) => (
         <div key={i} className="heatmap-col">
-          <span className="heatmap-month muted">{monthLabel(week)}</span>
-          {week.map((day) => (
-            <span
-              key={day}
-              className={
-                day > today ? 'heatmap-cell future'
-                : done.has(day) ? 'heatmap-cell done'
-                : 'heatmap-cell'
-              }
-              title={cellTitle(day)}
-            />
-          ))}
+          <span className="heatmap-month muted">{col.label}</span>
+          {col.days.map((day, j) =>
+            day === null ? (
+              <span key={j} className="heatmap-cell blank" aria-hidden="true" />
+            ) : (
+              <span
+                key={j}
+                className={
+                  day > today ? 'heatmap-cell future'
+                  : done.has(day) ? 'heatmap-cell done'
+                  : 'heatmap-cell'
+                }
+                title={cellTitle(day)}
+              />
+            ),
+          )}
         </div>
       ))}
     </div>

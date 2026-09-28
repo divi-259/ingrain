@@ -34,19 +34,34 @@ export default function App() {
   return (
     <HashRouter>
       <nav className="topnav">
-        <NavLink to="/" className="brand" end>Ingrain</NavLink>
-        <NavLink to="/" end>Today</NavLink>
-        <NavLink to="/items">My items</NavLink>
-        <NavLink to="/journey">Journey</NavLink>
-        <button
-          type="button"
-          className="theme-toggle"
-          onClick={toggleTheme}
-          title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-          aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-        >
-          {theme === 'dark' ? '☀️' : '🌙'}
-        </button>
+        <div className="topnav-left">
+          <NavLink to="/" className="brand" end>
+            <svg className="brand-leaf" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path
+                d="M20 4C10 4 4 10 4 18v2h2c8 0 14-6 14-16Z"
+                fill="var(--sage)"
+              />
+              <path d="M6 20C10 14 14 10 19 5" stroke="var(--surface)" strokeWidth="1.3" strokeLinecap="round" />
+            </svg>
+            Ingrain
+          </NavLink>
+        </div>
+        <div className="topnav-center">
+          <NavLink to="/" end>Today</NavLink>
+          <NavLink to="/items">My items</NavLink>
+          <NavLink to="/journey">Journey</NavLink>
+        </div>
+        <div className="topnav-right">
+          <button
+            type="button"
+            className="theme-toggle"
+            onClick={toggleTheme}
+            title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {theme === 'dark' ? '☀️' : '🌙'}
+          </button>
+        </div>
       </nav>
       <Routes>
         <Route path="/" element={<TodayPage />} />

@@ -2,19 +2,39 @@
    Every color/radius/shadow in the app comes from these variables.
    Dark mode = the same tokens swapped in :root[data-theme='dark'] below. */
 :root {
-  --accent: #16a34a;        /* actions, filled heatmap, links */
-  --accent-strong: #15803d; /* hover state of the accent */
-  --accent-text: #15803d;   /* accent-colored text (contrast-checked) */
-  --accent-soft: rgba(22, 163, 74, 0.12);  /* pills, focus rings */
-  --accent-wash: rgba(22, 163, 74, 0.07);  /* note quotes, tints */
+  /* "Mountain Journey" palette: Deep Teal / Primary Teal / Soft Teal /
+     Sage / Apricot / Cream. Deep Teal is the anchor (nav, completion,
+     milestone numbers); Primary Teal is the everyday action color. */
+  --accent: #21666a;        /* primary actions (buttons, links) */
+  --accent-strong: #155b60; /* anchor: active nav pill, completion, stat numbers */
+  --accent-text: #155b60;
+  --accent-soft: rgba(21, 91, 96, 0.1);   /* pills, focus rings */
+  --accent-wash: rgba(21, 91, 96, 0.06);  /* tints */
 
-  --bg: #f7f7f5;
+  --soft-teal: #6fa9a0;      /* secondary buttons, trail accents */
+  --soft-teal-text: #3f7a71;
+  --soft-teal-soft: rgba(111, 169, 160, 0.16);
+
+  --apricot: #f4a261;        /* links, badges, note highlights */
+  --apricot-strong: #e08a3e;
+  --apricot-text: #b9682a;
+  --apricot-soft: #fbe3cf;
+  --apricot-wash: rgba(244, 162, 97, 0.08);
+
+  --sage: #82b59a;           /* heatmap fill, secondary icons */
+  --sage-text: #4b7b62;
+  --sage-soft: rgba(130, 181, 154, 0.16);
+
+  --cream: #fff8ec;           /* quote banner, milestone stat cards */
+  --bg: #f3f8f7;
   --surface: #ffffff;
+  --stat-bg: var(--cream);
   --hover: rgba(17, 24, 28, 0.045);
-  --text: #1c2024;
-  --text-muted: #7c828b;
-  --border: rgba(17, 24, 28, 0.1);
-  --cell: #e9e9e6;          /* empty heatmap day */
+  --text: #193238;
+  --text-muted: #667b7d;
+  --border: rgba(21, 91, 96, 0.12);
+  --cell: #e7f0ee;          /* empty heatmap day */
+  --heatmap-done: var(--sage);
 
   --danger: #dc2626;
   --danger-strong: #b91c1c;
@@ -32,21 +52,38 @@
 
 /* Dark theme: the <html data-theme> attribute is set before first paint
    by the inline script in index.html (saved choice, else system), and
-   flipped at runtime by the nav toggle. */
+   flipped at runtime by the nav toggle. Same palette, brightened so it
+   reads against a dark surface. */
 :root[data-theme='dark'] {
-  --accent: #22c55e;
-  --accent-strong: #4ade80;
-  --accent-text: #4ade80;
-  --accent-soft: rgba(34, 197, 94, 0.16);
-  --accent-wash: rgba(34, 197, 94, 0.09);
+  --accent: #4fa8a0;
+  --accent-strong: #6fc2b8;
+  --accent-text: #6fc2b8;
+  --accent-soft: rgba(79, 168, 160, 0.18);
+  --accent-wash: rgba(79, 168, 160, 0.1);
 
-  --bg: #15171b;
-  --surface: #1e2126;
+  --soft-teal: #8fc0b7;
+  --soft-teal-text: #8fc0b7;
+  --soft-teal-soft: rgba(143, 192, 183, 0.16);
+
+  --apricot: #f5b37a;
+  --apricot-strong: #f8c08f;
+  --apricot-text: #f0ad6e;
+  --apricot-soft: rgba(244, 162, 97, 0.18);
+  --apricot-wash: rgba(244, 162, 97, 0.1);
+
+  --sage: #93c7ac;
+  --sage-text: #93c7ac;
+  --sage-soft: rgba(147, 199, 172, 0.16);
+
+  --bg: #102224;
+  --surface: #17302e;
+  --stat-bg: var(--surface);
   --hover: rgba(255, 255, 255, 0.05);
-  --text: #e7e9ec;
-  --text-muted: #969da7;
-  --border: rgba(255, 255, 255, 0.1);
-  --cell: #272b31;
+  --text: #e7f2f0;
+  --text-muted: #93aba9;
+  --border: rgba(230, 245, 243, 0.12);
+  --cell: #1e3634;
+  --heatmap-done: var(--sage);
 
   --danger: #ef4444;
   --danger-strong: #dc2626;
@@ -69,6 +106,69 @@ main {
   max-width: 640px;
   margin: 0 auto;
   padding: 2rem 1rem;
+}
+
+/* My items & Journey: a bit more room to breathe, and a positioning
+   context so they reliably paint above the fixed decorative backdrop. */
+main.items-main,
+main.journey-main {
+  position: relative;
+  z-index: 1;
+  max-width: 760px;
+  padding-top: 2.5rem;
+  padding-bottom: 3rem;
+}
+
+@media (min-width: 1000px) {
+  main.items-main,
+  main.journey-main {
+    max-width: 860px;
+  }
+}
+
+/* ---------- Decorative page backdrop (My items, Journey) ---------- */
+.page-bg {
+  display: none;
+}
+
+@media (min-width: 1200px) {
+  .page-bg {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+}
+
+.bg-shape {
+  position: absolute;
+}
+
+.bg-mountain {
+  left: -50px;
+  bottom: -20px;
+  opacity: 0.12;
+}
+
+.bg-cloud {
+  top: 90px;
+  right: 3%;
+  opacity: 0.16;
+}
+
+.bg-leaves {
+  top: 150px;
+  left: 2.5%;
+  opacity: 0.16;
+  transform: rotate(-12deg);
+}
+
+.bg-trail {
+  bottom: 70px;
+  right: 5%;
+  opacity: 0.2;
 }
 
 h1 {
@@ -132,6 +232,23 @@ button.danger:hover:not(:disabled) {
   background: var(--danger-strong);
 }
 
+button.secondary {
+  background: var(--soft-teal-soft);
+  border-color: var(--soft-teal);
+  color: var(--soft-teal-text);
+}
+
+button.secondary:hover:not(:disabled) {
+  background: var(--sage-soft);
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+
+.delete-hint:hover:not(:disabled) {
+  border-color: var(--danger);
+  color: var(--danger-text);
+}
+
 input {
   font: inherit;
   padding: 0.45rem 0.7rem;
@@ -152,13 +269,41 @@ input::placeholder {
   color: var(--text-muted);
 }
 
+/* ---------- Page subtitle ---------- */
+.page-subtitle {
+  margin: -0.75rem 0 1.75rem;
+  color: var(--text-muted);
+}
+
 /* ---------- Forms ---------- */
+.add-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--stat-bg);
+  box-shadow: var(--shadow);
+  padding: 1.5rem 1.75rem 1.75rem;
+  margin-bottom: 1.75rem;
+}
+
+.add-card-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: 0 0 0.9rem;
+}
+
+.add-card-heading h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
 .add-form,
 .edit-form {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  margin-bottom: 1.5rem;
 }
 
 /* Title gets its own full row; notes + link + button share the second */
@@ -178,11 +323,30 @@ input::placeholder {
 }
 
 .backup-row {
+  margin-bottom: 1.75rem;
+}
+
+.backup-buttons {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1.5rem;
+  gap: 0.6rem;
+}
+
+.backup-buttons button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.backup-icon {
+  flex-shrink: 0;
+}
+
+.backup-note {
+  margin: 0.5rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.8rem;
 }
 
 /* ---------- Item list ---------- */
@@ -190,6 +354,9 @@ input::placeholder {
   list-style: none;
   padding: 0;
   margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
 .item-row {
@@ -197,15 +364,17 @@ input::placeholder {
   justify-content: space-between;
   align-items: center;
   gap: 1rem;
-  padding: 0.75rem 0.6rem;
-  margin: 0 -0.6rem;
-  border-bottom: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  transition: background 0.15s ease;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--soft-teal);
+  border-radius: var(--radius);
+  background: var(--stat-bg);
+  box-shadow: var(--shadow);
+  transition: box-shadow 0.15s ease, transform 0.1s ease;
 }
 
 .item-row:hover {
-  background: var(--hover);
+  box-shadow: var(--shadow-lift);
 }
 
 .item-row .edit-form {
@@ -228,12 +397,40 @@ input::placeholder {
 }
 
 .item-title {
-  font-weight: 600;
+  font-size: 1.02rem;
+  font-weight: 650;
 }
 
 .item-notes {
   color: var(--text-muted);
   font-size: 0.9rem;
+}
+
+/* ---------- Empty state ---------- */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.5rem;
+  padding: 2.5rem 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--cream);
+}
+
+:root[data-theme='dark'] .empty-state {
+  background: var(--surface);
+}
+
+.empty-state h2 {
+  margin: 0.25rem 0 0;
+  font-size: 1.1rem;
+}
+
+.empty-state p {
+  margin: 0;
+  color: var(--text-muted);
 }
 
 .item-actions {
@@ -257,14 +454,18 @@ input::placeholder {
   gap: 0.5rem;
 }
 
-/* ---------- Nav: floating sticky bar ---------- */
+/* ---------- Nav: floating sticky bar ----------
+   A 3-column grid (left / center / right) so the middle nav group is
+   truly centered in the bar, independent of how wide the brand or the
+   theme toggle happen to be — not just centered in the leftover space. */
 .topnav {
   position: sticky;
   top: 0.75rem;
   z-index: 10;
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  gap: 0.4rem;
+  column-gap: 0.5rem;
   width: min(700px, calc(100% - 1.5rem));
   margin: 0.75rem auto 0;
   padding: 0.5rem 0.9rem;
@@ -275,8 +476,23 @@ input::placeholder {
   box-sizing: border-box;
 }
 
-/* Never let nav items wrap internally; the email is the only thing
-   allowed to shrink (it ellipsizes, full address on hover). */
+.topnav-left {
+  justify-self: start;
+  min-width: 0;
+}
+
+.topnav-center {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  justify-self: center;
+}
+
+.topnav-right {
+  justify-self: end;
+}
+
+/* Never let nav items wrap internally */
 .topnav a,
 .topnav button {
   white-space: nowrap;
@@ -285,11 +501,6 @@ input::placeholder {
 
 .topnav button {
   padding: 0.35rem 0.8rem;
-}
-
-.topnav .brand {
-  font-weight: 700;
-  margin-right: auto;
 }
 
 .topnav a {
@@ -305,16 +516,90 @@ input::placeholder {
 }
 
 .topnav a.active {
-  color: var(--accent-text);
+  color: #fff;
   font-weight: 600;
-  background: var(--accent-soft);
+  background: var(--accent-strong);
 }
 
 .topnav a.brand {
-  color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--accent-strong);
   font-weight: 700;
-  margin-right: 0;
   background: none;
+}
+
+.topnav a.brand.active {
+  color: var(--accent-strong);
+  background: none;
+  font-weight: 700;
+}
+
+.brand-leaf {
+  flex-shrink: 0;
+}
+
+/* ---------- Today hero ---------- */
+.hero {
+  position: relative;
+  height: 170px;
+  margin-bottom: 1rem;
+  border-radius: var(--radius);
+  background-size: cover;
+  /* Anchored on the cat's own vertical center in the source illustration
+     (not an edge), so however much gets cropped at a given width, it's
+     cropped evenly above and below the cat rather than through its head. */
+  background-position: center 45%;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+.hero-scrim {
+  height: 100%;
+  padding: 1.1rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: linear-gradient(
+    100deg,
+    rgba(255, 248, 236, 0.92) 0%,
+    rgba(255, 248, 236, 0.72) 38%,
+    rgba(255, 248, 236, 0.32) 62%,
+    rgba(255, 248, 236, 0) 82%
+  );
+}
+
+:root[data-theme='dark'] .hero-scrim {
+  background: linear-gradient(
+    100deg,
+    rgba(16, 34, 36, 0.92) 0%,
+    rgba(16, 34, 36, 0.74) 38%,
+    rgba(16, 34, 36, 0.34) 62%,
+    rgba(16, 34, 36, 0) 82%
+  );
+}
+
+.hero-title {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #193238;
+}
+
+:root[data-theme='dark'] .hero-title {
+  color: #e7f2f0;
+}
+
+.hero-tagline {
+  margin: 0.25rem 0 0;
+  font-size: 0.95rem;
+  color: #3a5459;
+}
+
+:root[data-theme='dark'] .hero-tagline {
+  color: #b9d2cf;
 }
 
 /* ---------- Today card ---------- */
@@ -326,10 +611,53 @@ input::placeholder {
   box-shadow: var(--shadow);
 }
 
-.today-card h2 {
-  margin-top: 0;
+.card-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.card-heading h2 {
+  margin: 0;
   font-size: 1.35rem;
   letter-spacing: -0.01em;
+}
+
+.item-checkbox {
+  flex-shrink: 0;
+  width: 1.6rem;
+  height: 1.6rem;
+  padding: 0;
+  border-radius: 999px;
+  border: 2px solid var(--border);
+  background: var(--surface);
+  color: #fff;
+  font-size: 0.85rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.item-checkbox.checked {
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
+}
+
+.item-checkbox:disabled {
+  opacity: 1;
+  cursor: default;
+}
+
+.badge-today {
+  flex-shrink: 0;
+  margin-left: auto;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  background: var(--apricot-soft);
+  color: var(--apricot-text);
+  font-size: 0.75rem;
+  font-weight: 600;
 }
 
 .today-actions {
@@ -342,11 +670,45 @@ input::placeholder {
 .done-note {
   font-weight: 600;
   color: var(--accent-text);
+  margin: 0;
+}
+
+.done-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.why-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+}
+
+.empty-moment {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.journey-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
 }
 
 .streak {
+  margin: 0 0 0.75rem;
   font-weight: 600;
-  margin-top: -0.5rem;
+}
+
+/* ---------- Mascot ---------- */
+.mascot {
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
+  filter: drop-shadow(0 2px 3px rgba(21, 91, 96, 0.12));
 }
 
 /* ---------- Text helpers ---------- */
@@ -374,7 +736,7 @@ input::placeholder {
   gap: 0.15rem;
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  background: var(--surface);
+  background: var(--stat-bg);
   padding: 0.75rem 0.5rem;
   box-shadow: var(--shadow);
 }
@@ -382,12 +744,43 @@ input::placeholder {
 .stat-value {
   font-size: 1.3rem;
   font-weight: 700;
+  color: var(--accent-strong);
 }
 
-/* ---------- Heatmap ---------- */
+.stat-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  font-size: 1rem;
+  margin-bottom: 0.1rem;
+}
+
+.stat-icon-apricot {
+  background: var(--apricot-soft);
+}
+
+.stat-icon-teal {
+  background: var(--accent-soft);
+}
+
+.stat-icon-sage {
+  background: var(--sage-soft);
+}
+
+/* ---------- Heatmap ----------
+   Weeks are distributed with justify-content: space-between so the whole
+   grid spans the container's full width — cells keep a fixed, consistent
+   size and it's the GAP between week-columns that grows or shrinks with
+   the viewport, not the cells themselves. overflow-x stays as a fallback
+   for the rare case a viewport is too narrow to fit every column even at
+   minimum size. */
 .heatmap {
   display: flex;
-  gap: 3px;
+  justify-content: space-between;
+  width: 100%;
   overflow-x: auto;
   padding-bottom: 0.25rem;
 }
@@ -395,7 +788,9 @@ input::placeholder {
 .heatmap-col {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 3px;
+  flex-shrink: 0;
 }
 
 .heatmap-month {
@@ -406,28 +801,47 @@ input::placeholder {
 }
 
 .heatmap-cell {
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
   border-radius: 3px;
   background: var(--cell);
   transition: background 0.2s ease;
 }
 
+@media (max-width: 600px) {
+  .heatmap-cell {
+    width: 9px;
+    height: 9px;
+  }
+
+  .heatmap-col {
+    gap: 2px;
+  }
+}
+
 .heatmap-cell.done {
-  background: var(--accent);
+  background: var(--heatmap-done);
 }
 
 .heatmap-cell.future {
   background: transparent;
 }
 
+.heatmap-cell.blank {
+  background: transparent;
+}
+
+.heatmap-cell:not(.future):not(.blank):hover {
+  box-shadow: 0 0 0 1.5px var(--accent-strong) inset;
+}
+
 /* ---------- Notes ---------- */
 .last-note {
   margin: 1rem 0 0;
   padding: 0.5rem 0.75rem;
-  border-left: 3px solid var(--accent);
+  border-left: 3px solid var(--apricot);
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-  background: var(--accent-wash);
+  background: var(--apricot-wash);
   font-style: italic;
 }
 
@@ -455,12 +869,12 @@ input::placeholder {
   color: var(--text-muted);
 }
 
-/* ---------- Today-page side rail (stats, mini heatmap, rotation) ---------- */
+/* ---------- Today-page side rail (stats, mini heatmap) ---------- */
 .rail {
   display: flex;
   flex-direction: column;
-  gap: 1.75rem;
-  margin-top: 2rem;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
 }
 
 .rail .stat-row {
@@ -472,30 +886,27 @@ input::placeholder {
   margin: 0 0 0.5rem;
 }
 
+.rail-title-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.handwritten {
+  font-family: 'Caveat', cursive;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--sage-text);
+  transform: rotate(-3deg);
+  white-space: nowrap;
+}
+
 .rail-link {
   display: inline-block;
   margin-top: 0.5rem;
   color: var(--text-muted);
   font-size: 0.85rem;
-}
-
-.rotation-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.rotation-list li {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 1rem;
-  padding: 0.4rem 0;
-  border-bottom: 1px solid var(--border);
-}
-
-.rotation-title {
-  overflow-wrap: anywhere;
 }
 
 /* Wide screens: Today card and rail sit side by side */
@@ -517,20 +928,37 @@ input::placeholder {
 }
 
 @media (max-width: 600px) {
+  /* Narrow screens: the 3-column grid doesn't leave room to keep the
+     center group truly centered without risking overflow, so fall back
+     to a simple flex row that wraps instead of clipping. */
   .topnav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
     gap: 0.25rem;
     width: calc(100% - 1rem);
     margin: 0.5rem auto 0;
     top: 0.5rem;
   }
 
+  .topnav-left,
+  .topnav-center,
+  .topnav-right {
+    justify-self: unset;
+  }
+
+  .topnav-center {
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+
+  .topnav-right {
+    margin-left: auto;
+  }
+
   .topnav a,
   .topnav button {
     white-space: nowrap;
-  }
-
-  .topnav button {
-    margin-left: auto;
   }
 
   /* Add form: stack vertically, full-width controls */
@@ -574,6 +1002,49 @@ input::placeholder {
 
   .today-actions button {
     width: 100%;
+  }
+
+  /* Hero: shorter, and a fuller scrim since there's less width for the
+     gradient to fade across before hitting the illustration's busy part */
+  .hero {
+    height: 130px;
+  }
+
+  .hero-scrim {
+    padding: 0.85rem 1rem;
+    background: linear-gradient(
+      180deg,
+      rgba(255, 248, 236, 0.94) 0%,
+      rgba(255, 248, 236, 0.78) 55%,
+      rgba(255, 248, 236, 0.15) 100%
+    );
+  }
+
+  :root[data-theme='dark'] .hero-scrim {
+    background: linear-gradient(
+      180deg,
+      rgba(16, 34, 36, 0.92) 0%,
+      rgba(16, 34, 36, 0.75) 60%,
+      rgba(16, 34, 36, 0.1) 100%
+    );
+  }
+
+  .hero-title {
+    font-size: 1.4rem;
+  }
+
+  .quote-banner {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  /* Stats: 2 columns instead of squeezing 3-4 narrow cards in one row */
+  .stat-row {
+    flex-wrap: wrap;
+  }
+
+  .stat {
+    flex: 1 1 calc(50% - 0.375rem);
   }
 }
 
@@ -619,7 +1090,7 @@ input::placeholder {
 
 /* ---------- Item links ---------- */
 .item-link {
-  color: var(--accent-text);
+  color: var(--apricot-text);
   font-size: 0.9rem;
   text-decoration: none;
 }
@@ -630,13 +1101,13 @@ input::placeholder {
 }
 
 .today-link {
-  color: var(--accent-text);
+  color: var(--apricot-text);
   font-weight: 600;
   text-decoration: none;
 }
 
 .last-note a {
-  color: var(--accent-text);
+  color: var(--apricot-text);
   overflow-wrap: anywhere;
 }
 
@@ -644,4 +1115,25 @@ input::placeholder {
   padding: 0.3rem 0.5rem;
   border-radius: 999px;
   line-height: 1;
+}
+
+/* ---------- Quote banner (Today footer) ---------- */
+.quote-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin-top: 1.5rem;
+  padding: 1.1rem 1.25rem;
+  border-radius: var(--radius);
+  background: linear-gradient(100deg, var(--stat-bg), var(--soft-teal-soft));
+}
+
+.quote-mountain {
+  flex-shrink: 0;
+}
+
+.quote-text {
+  margin: 0 0 0.15rem;
+  font-style: italic;
+  font-weight: 600;
 }
